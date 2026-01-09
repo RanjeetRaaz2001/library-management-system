@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Membership - Library Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS Admin</h2>
+            <p class="role-badge status-active">Administrator</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Maintenance</h3>
+                <ul class="nav-links">
+                    <li><a href="add_member.html" class="active"><i class="fas fa-user-plus"></i> Add Member</a></li>
+                    <li><a href="add_book.html"><i class="fas fa-book-medical"></i> Add Book</a></li>
+                    <li><a href="user_management.html"><i class="fas fa-users-cog"></i> User Management</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Reports</h3>
+                <ul class="nav-links">
+                    <li><a href="reports.html?type=books"><i class="fas fa-book"></i> Book List</a></li>
+                    <li><a href="reports.html?type=members"><i class="fas fa-users"></i> Member List</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="maintenance.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-admin" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-user-plus"></i> Add Membership</h1>
+            <p>Register new library members</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="form-section">
+            <div class="form-header">
+                <h2>Member Registration Form</h2>
+                <p class="chart-link" style="color: var(--secondary-color); cursor: pointer;"><i class="fas fa-info-circle"></i> View Requirements</p>
+            </div>
+            
+            <form id="addMemberForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName"><i class="fas fa-user"></i> First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="Enter first name">
+                        <div class="error-message" id="firstNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName"><i class="fas fa-user"></i> Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Enter last name">
+                        <div class="error-message" id="lastNameError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contactNumber"><i class="fas fa-phone"></i> Contact Number *</label>
+                        <input type="tel" id="contactNumber" name="contactNumber" required 
+                               pattern="[0-9]{10}" placeholder="10-digit mobile number">
+                        <div class="error-message" id="contactError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="optional@email.com">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address"><i class="fas fa-map-marker-alt"></i> Contact Address *</label>
+                    <textarea id="address" name="address" rows="3" required placeholder="Full postal address"></textarea>
+                    <div class="error-message" id="addressError"></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="aadharNumber"><i class="fas fa-id-card"></i> Aadhar Card Number *</label>
+                        <input type="text" id="aadharNumber" name="aadharNumber" required 
+                               pattern="[0-9]{12}" placeholder="12-digit Aadhar number">
+                        <div class="error-message" id="aadharError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="membershipStart"><i class="fas fa-calendar-alt"></i> Membership Start Date *</label>
+                        <input type="date" id="membershipStart" name="membershipStart" required>
+                    </div>
+                </div>
+                
+                <!-- Membership Duration - Radio Buttons -->
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> Membership Duration *</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="sixMonths" name="membershipDuration" value="6" checked data-default="true">
+                            <label for="sixMonths">6 Months</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="oneYear" name="membershipDuration" value="12">
+                            <label for="oneYear">1 Year</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="twoYears" name="membershipDuration" value="24">
+                            <label for="twoYears">2 Years</label>
+                        </div>
+                    </div>
+                    <div class="error-message" id="durationError"></div>
+                </div>
+                
+                <!-- Auto-calculated End Date -->
+                <div class="form-group">
+                    <label for="membershipEnd"><i class="fas fa-calendar-check"></i> Membership End Date (Auto-calculated)</label>
+                    <input type="date" id="membershipEnd" name="membershipEnd" readonly 
+                           style="background-color: #f0f0f0;">
+                </div>
+                
+                <!-- Membership Fee -->
+                <div class="form-group">
+                    <label for="membershipFee"><i class="fas fa-rupee-sign"></i> Membership Fee</label>
+                    <input type="text" id="membershipFee" name="membershipFee" readonly 
+                           value="₹500" style="background-color: #f0f0f0; font-weight: bold;">
+                    <small class="fee-note">Fee: 6M=₹500 | 1Y=₹900 | 2Y=₹1600</small>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Confirm & Add Member
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Form Instructions -->
+        <div class="instructions-box">
+            <h3><i class="fas fa-clipboard-check"></i> Form Instructions</h3>
+            <ul>
+                <li><strong>All fields marked with * are mandatory</strong></li>
+                <li>Select membership duration: 6 months (default), 1 year, or 2 years</li>
+                <li>Aadhar Card number must be 12 digits</li>
+                <li>Contact number must be 10 digits</li>
+                <li>End date is automatically calculated based on selected duration</li>
+                <li>Membership fee is calculated automatically</li>
+                <li>Email address is optional</li>
+            </ul>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/validations.js"></script>
+    <script>
+       // Add this to the form submission in add_member.html
+document.getElementById('addMemberForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validate all required fields
+    const requiredFields = ['firstName', 'lastName', 'contactNumber', 'address', 'aadharNumber', 'membershipStart'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        const errorElement = document.getElementById(fieldId + 'Error');
+        
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('input-error');
+            if (errorElement) {
+                errorElement.textContent = 'This field is required';
+                errorElement.style.display = 'block';
+            }
+        } else {
+            field.classList.remove('input-error');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+        }
+    });
+    
+    if (isValid) {
+        const memberData = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            contactNumber: document.getElementById('contactNumber').value,
+            email: document.getElementById('email').value || '',
+            address: document.getElementById('address').value,
+            aadharNumber: document.getElementById('aadharNumber').value,
+            membershipDuration: document.querySelector('input[name="membershipDuration"]:checked').value,
+            startDate: document.getElementById('membershipStart').value,
+            endDate: document.getElementById('membershipEnd').value,
+            fee: document.getElementById('membershipFee').value,
+            status: 'Active'
+        };
+        
+        // Save member to storage
+        const member = LibraryStorage.addMember(memberData);
+        
+        // Show success message
+        alert(`Member added successfully!\n\nMember ID: ${member.id}\nName: ${memberData.firstName} ${memberData.lastName}\nMembership: ${memberData.membershipDuration} months`);
+        
+        // Reset form
+        this.reset();
+        document.getElementById('membershipStart').value = new Date().toISOString().split('T')[0];
+        calculateEndDate();
+    }
+});
+    </script>
+    
+    <style>
+        .instructions-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+            border-left: 4px solid var(--user-color);
+        }
+        
+        .instructions-box h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .instructions-box li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .instructions-box li:before {
+            content: '•';
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .fee-note {
+            display: block;
+            margin-top: 5px;
+            color: var(--dark-gray);
+            font-size: 12px;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .form-header h2 {
+            color: var(--primary-color);
+        }
+    </style>
+</body>
+</html>

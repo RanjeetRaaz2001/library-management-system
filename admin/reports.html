@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Library Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS Admin</h2>
+            <p class="role-badge status-active">Administrator</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Reports</h3>
+                <ul class="nav-links">
+                    <li><a href="reports.html?type=books" class="active"><i class="fas fa-book"></i> Book List</a></li>
+                    <li><a href="reports.html?type=movies"><i class="fas fa-film"></i> Movie List</a></li>
+                    <li><a href="reports.html?type=members"><i class="fas fa-users"></i> Member List</a></li>
+                    <li><a href="reports.html?type=issues"><i class="fas fa-exchange-alt"></i> Active Issues</a></li>
+                    <li><a href="reports.html?type=overdue"><i class="fas fa-exclamation-triangle"></i> Overdue</a></li>
+                    <li><a href="reports.html?type=pending"><i class="fas fa-clock"></i> Pending Requests</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Maintenance</h3>
+                <ul class="nav-links">
+                    <li><a href="add_member.html"><i class="fas fa-user-plus"></i> Add Member</a></li>
+                    <li><a href="add_book.html"><i class="fas fa-book-medical"></i> Add Book</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="dashboard.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-admin" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-chart-bar"></i> Reports Module</h1>
+            <p>Generate and view library reports</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Report Type Selection -->
+        <div class="report-selection">
+            <h2>Select Report Type</h2>
+            <div class="report-types-grid">
+                <a href="?type=books" class="report-type-card" data-type="books">
+                    <i class="fas fa-book fa-3x"></i>
+                    <h3>Master List of Books</h3>
+                    <p>Complete list of all books in library</p>
+                    <span class="badge badge-primary" id="booksCount">Loading...</span>
+                </a>
+                
+                <a href="?type=movies" class="report-type-card" data-type="movies">
+                    <i class="fas fa-film fa-3x"></i>
+                    <h3>Master List of Movies</h3>
+                    <p>Complete list of all movies in library</p>
+                    <span class="badge badge-primary" id="moviesCount">Loading...</span>
+                </a>
+                
+                <a href="?type=members" class="report-type-card" data-type="members">
+                    <i class="fas fa-users fa-3x"></i>
+                    <h3>Master List of Memberships</h3>
+                    <p>All registered library members</p>
+                    <span class="badge badge-primary" id="membersCount">Loading...</span>
+                </a>
+                
+                <a href="?type=issues" class="report-type-card" data-type="issues">
+                    <i class="fas fa-exchange-alt fa-3x"></i>
+                    <h3>Active Issues</h3>
+                    <p>Currently issued books/movies</p>
+                    <span class="badge badge-warning" id="issuesCount">Loading...</span>
+                </a>
+                
+                <a href="?type=overdue" class="report-type-card" data-type="overdue">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    <h3>Overdue Returns</h3>
+                    <p>Books/movies past return date</p>
+                    <span class="badge badge-danger" id="overdueCount">Loading...</span>
+                </a>
+                
+                <a href="?type=pending" class="report-type-card" data-type="pending">
+                    <i class="fas fa-clock fa-3x"></i>
+                    <h3>Pending Issue Requests</h3>
+                    <p>Requests waiting for approval</p>
+                    <span class="badge badge-info" id="pendingCount">Loading...</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Report Content Area -->
+        <div class="report-content" id="reportContent">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+        
+        <!-- Report Controls -->
+        <div class="report-controls" id="reportControls" style="display: none;">
+            <div class="controls-header">
+                <h3 id="reportTitle">Report Title</h3>
+                <div class="control-buttons">
+                    <button class="btn btn-secondary print-btn">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-secondary export-btn" data-format="csv">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                    <button class="btn btn-secondary filter-btn">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="btn btn-primary refresh-btn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters" id="reportFilters" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterCategory">Category</label>
+                        <select id="filterCategory">
+                            <option value="">All Categories</option>
+                            <option value="Science">Science</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Children">Children</option>
+                            <option value="Personal Development">Personal Development</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterStatus">Status</label>
+                        <select id="filterStatus">
+                            <option value="">All Status</option>
+                            <option value="Available">Available</option>
+                            <option value="Issued">Issued</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDate">Date Range</label>
+                        <input type="date" id="filterDateFrom">
+                        <span>to</span>
+                        <input type="date" id="filterDateTo">
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button class="btn btn-secondary" id="clearFilters">
+                        Clear Filters
+                    </button>
+                    <button class="btn btn-primary" id="applyFilters">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container" id="reportTableContainer">
+                <!-- Report table will be loaded here -->
+            </div>
+            
+            <div class="report-summary" id="reportSummary">
+                <!-- Summary will be loaded here -->
+            </div>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        console.log("Reports page loaded");
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize storage
+            LibraryStorage.init();
+            
+            // Set user info
+            const userName = sessionStorage.getItem('userName') || 'Administrator';
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) {
+                userProfile.innerHTML = `
+                    <i class="fas fa-user-circle fa-2x"></i>
+                    <div>
+                        <strong>${userName}</strong><br>
+                        <small>Administrator</small>
+                    </div>
+                `;
+            }
+            
+            // Update counts in cards
+            updateReportCounts();
+            
+            // Get report type from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportType = urlParams.get('type') || 'books';
+            
+            console.log("Loading report type:", reportType);
+            
+            // Highlight active report type
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                if (card.dataset.type === reportType) {
+                    card.style.border = '2px solid var(--secondary-color)';
+                    card.style.background = '#f0f7ff';
+                }
+            });
+            
+            // Load report data
+            loadReport(reportType);
+            
+            // Event listeners for report type selection
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const type = this.dataset.type;
+                    console.log("Switching to report:", type);
+                    window.location.href = `reports.html?type=${type}`;
+                });
+            });
+            
+            // Toggle filters
+            const filterBtn = document.querySelector('.filter-btn');
+            if (filterBtn) {
+                filterBtn.addEventListener('click', function() {
+                    const filters = document.getElementById('reportFilters');
+                    filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+            
+            // Apply filters
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', function() {
+                    loadReport(reportType);
+                });
+            }
+            
+            // Clear filters
+            const clearFiltersBtn = document.getElementById('clearFilters');
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', function() {
+                    document.getElementById('filterCategory').value = '';
+                    document.getElementById('filterStatus').value = '';
+                    document.getElementById('filterDateFrom').value = '';
+                    document.getElementById('filterDateTo').value = '';
+                    loadReport(reportType);
+                });
+            }
+            
+            // Print button
+            const printBtn = document.querySelector('.print-btn');
+            if (printBtn) {
+                printBtn.addEventListener('click', function() {
+                    window.print();
+                });
+            }
+            
+            // Export buttons
+            document.querySelectorAll('.export-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const format = this.dataset.format;
+                    alert(`Exporting report as ${format.toUpperCase()}...\n\nNote: In a real application, this would download the ${format.toUpperCase()} file.`);
+                });
+            });
+            
+            // Refresh button
+            const refreshBtn = document.querySelector('.refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    console.log("Refreshing report...");
+                    loadReport(reportType);
+                    updateReportCounts();
+                });
+            }
+        });
+        
+        // Update report counts
+        function updateReportCounts() {
+            try {
+                const books = LibraryStorage.getBooks();
+                const movies = LibraryStorage.getMovies();
+                const members = LibraryStorage.getMembers();
+                
+                // Update counts in cards
+                document.getElementById('booksCount').textContent = books.length + ' items';
+                document.getElementById('moviesCount').textContent = movies.length + ' items';
+                document.getElementById('membersCount').textContent = members.length + ' members';
+                
+                // Calculate other counts
+                const issuedBooks = books.filter(b => b.status === 'Issued').length;
+                document.getElementById('issuesCount').textContent = issuedBooks + ' active';
+                
+                // For demo purposes (in real app, these would come from actual data)
+                document.getElementById('overdueCount').textContent = '3 overdue';
+                document.getElementById('pendingCount').textContent = '2 pending';
+                
+            } catch (error) {
+                console.error("Error updating counts:", error);
+            }
+        }
+        
+        // Load report function
+        function loadReport(type) {
+            console.log("Loading report data for:", type);
+            
+            const reportContent = document.getElementById('reportContent');
+            const reportControls = document.getElementById('reportControls');
+            const reportTitle = document.getElementById('reportTitle');
+            const tableContainer = document.getElementById('reportTableContainer');
+            const reportSummary = document.getElementById('reportSummary');
+            
+            // Show controls
+            reportControls.style.display = 'block';
+            
+            // Get data based on report type
+            let reportData;
+            
+            switch(type) {
+                case 'books':
+                    reportData = getBooksReportData();
+                    break;
+                case 'movies':
+                    reportData = getMoviesReportData();
+                    break;
+                case 'members':
+                    reportData = getMembersReportData();
+                    break;
+                case 'issues':
+                    reportData = getIssuesReportData();
+                    break;
+                case 'overdue':
+                    reportData = getOverdueReportData();
+                    break;
+                case 'pending':
+                    reportData = getPendingReportData();
+                    break;
+                default:
+                    reportData = getBooksReportData();
+            }
+            
+            console.log("Report data retrieved:", reportData.title, "with", reportData.data.length, "items");
+            
+            // Set report title
+            reportTitle.textContent = reportData.title;
+            
+            // Generate table HTML
+            let tableHTML = `
+                <table class="data-table sortable">
+                    <thead>
+                        <tr>
+            `;
+            
+            reportData.columns.forEach((column, index) => {
+                tableHTML += `<th data-sort="string">${column}</th>`;
+            });
+            
+            tableHTML += `</tr></thead><tbody>`;
+            
+            if (reportData.data.length === 0) {
+                tableHTML += `
+                    <tr>
+                        <td colspan="${reportData.columns.length}" style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-inbox fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
+                            <h4>No data found</h4>
+                            <p>${type === 'books' ? 'No books available. Add some books first.' : 
+                              type === 'movies' ? 'No movies available. Add some movies first.' : 
+                              'No data available for this report.'}</p>
+                            ${type === 'books' ? '<a href="add_book.html" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add New Book</a>' : ''}
+                            ${type === 'movies' ? '<a href="add_book.html" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add New Movie</a>' : ''}
+                        </td>
+                    </tr>
+                `;
+            } else {
+                reportData.data.forEach((row, rowIndex) => {
+                    tableHTML += `<tr>`;
+                    row.forEach((cell, cellIndex) => {
+                        // Check if this is a status column
+                        const isStatusColumn = cellIndex === row.length - 1 && 
+                                              (type === 'members' || type === 'books' || type === 'issues');
+                        
+                        if (isStatusColumn) {
+                            // Status column with badge
+                            const statusClass = cell === 'Active' || cell === 'Available' ? 'status-active' : 
+                                              cell === 'Pending' ? 'status-pending' : 'status-inactive';
+                            tableHTML += `<td><span class="${statusClass}">${cell}</span></td>`;
+                        } else if (typeof cell === 'string' && cell.includes('₹')) {
+                            // Amount column
+                            tableHTML += `<td style="font-weight: bold; color: #c2185b;">${cell}</td>`;
+                        } else {
+                            tableHTML += `<td>${cell}</td>`;
+                        }
+                    });
+                    tableHTML += `</tr>`;
+                });
+            }
+            
+            tableHTML += `</tbody></table>`;
+            
+            // Set table content
+            tableContainer.innerHTML = tableHTML;
+            
+            // Set summary
+            reportSummary.innerHTML = `
+                <div class="summary-box">
+                    <i class="fas fa-chart-pie"></i>
+                    <div>
+                        <h4>Report Summary</h4>
+                        <p>${reportData.summary}</p>
+                        <small>Last updated: ${new Date().toLocaleTimeString()}</small>
+                    </div>
+                </div>
+            `;
+            
+            // Hide report selection
+            if (reportContent) {
+                reportContent.style.display = 'none';
+            }
+            
+            // Initialize table sorting
+            setTimeout(initTableSorting, 100);
+        }
+        
+        // Initialize table sorting
+        function initTableSorting() {
+            const tables = document.querySelectorAll('.data-table.sortable');
+            tables.forEach(table => {
+                const headers = table.querySelectorAll('th[data-sort]');
+                headers.forEach(header => {
+                    header.style.cursor = 'pointer';
+                    header.addEventListener('click', function() {
+                        const columnIndex = this.cellIndex;
+                        const dataType = this.dataset.sort || 'string';
+                        sortTable(table, columnIndex, dataType);
+                    });
+                });
+            });
+        }
+        
+        // Table sorting function
+        function sortTable(table, columnIndex, dataType = 'string') {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const isAscending = table.dataset.sortOrder !== 'asc';
+            
+            rows.sort((a, b) => {
+                const aValue = a.cells[columnIndex]?.textContent?.trim() || '';
+                const bValue = b.cells[columnIndex]?.textContent?.trim() || '';
+                
+                let comparison = 0;
+                
+                if (dataType === 'number') {
+                    const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
+                    const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
+                    comparison = (isNaN(aNum) ? 0 : aNum) - (isNaN(bNum) ? 0 : bNum);
+                } else if (dataType === 'date') {
+                    comparison = new Date(aValue) - new Date(bValue);
+                } else {
+                    comparison = aValue.localeCompare(bValue);
+                }
+                
+                return isAscending ? comparison : -comparison;
+            });
+            
+            // Remove existing rows
+            rows.forEach(row => tbody.removeChild(row));
+            
+            // Add sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // Update sort order
+            table.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+            
+            // Update header indicators
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            const currentHeader = table.querySelector(`th:nth-child(${columnIndex + 1})`);
+            if (currentHeader) {
+                currentHeader.classList.add(isAscending ? 'sort-asc' : 'sort-desc');
+            }
+        }
+        
+        // Helper functions for report data
+        function getBooksReportData() {
+            try {
+                const books = LibraryStorage.getBooks();
+                console.log("Retrieved books for report:", books.length, "books");
+                
+                // Apply filters if any
+                let filteredBooks = [...books];
+                const categoryFilter = document.getElementById('filterCategory')?.value;
+                const statusFilter = document.getElementById('filterStatus')?.value;
+                
+                if (categoryFilter) {
+                    filteredBooks = filteredBooks.filter(book => book.category === categoryFilter);
+                }
+                if (statusFilter) {
+                    filteredBooks = filteredBooks.filter(book => book.status === statusFilter);
+                }
+                
+                const data = filteredBooks.map(book => [
+                    book.serial || 'N/A',
+                    book.name || 'Unnamed Book',
+                    book.author || 'Unknown Author',
+                    book.category || 'Uncategorized',
+                    book.status || 'Available',
+                    `₹${book.cost || '0'}`,
+                    book.procurementDate || book.addedDate || 'N/A'
+                ]);
+                
+                const stats = LibraryStorage.getStats();
+                
+                return {
+                    title: 'Master List of Books',
+                    columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
+                    data: data,
+                    summary: `Total Books: ${stats.totalBooks} | Available: ${stats.availableBooks} | Issued: ${stats.issuedBooks} | Showing: ${filteredBooks.length}`
+                };
+                
+            } catch (error) {
+                console.error("Error getting books report data:", error);
+                return {
+                    title: 'Master List of Books',
+                    columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
+                    data: [],
+                    summary: 'Error loading book data'
+                };
+            }
+        }
+        
+        function getMoviesReportData() {
+            const movies = LibraryStorage.getMovies();
+            
+            const data = movies.map(movie => [
+                movie.serial || 'N/A',
+                movie.name || 'Unnamed Movie',
+                movie.author || 'Unknown Director',
+                movie.category || 'Uncategorized',
+                movie.status || 'Available',
+                movie.duration || 'N/A',
+                movie.procurementDate || movie.addedDate || 'N/A'
+            ]);
+            
+            return {
+                title: 'Master List of Movies',
+                columns: ['Serial No', 'Name of Movie', 'Director', 'Category', 'Status', 'Duration', 'Added Date'],
+                data: data,
+                summary: `Total Movies: ${movies.length}`
+            };
+        }
+        
+        function getMembersReportData() {
+            const members = LibraryStorage.getMembers();
+            
+            const data = members.map(member => [
+                member.id || 'N/A',
+                (member.firstName || '') + ' ' + (member.lastName || ''),
+                member.contactNumber || 'N/A',
+                member.address || 'N/A',
+                member.aadharNumber || 'N/A',
+                member.startDate || 'N/A',
+                member.endDate || 'N/A',
+                member.status || 'Active'
+            ]);
+            
+            return {
+                title: 'Master List of Memberships',
+                columns: ['Membership ID', 'Name of Member', 'Contact Number', 'Contact Address', 'Aadhar Card No', 'Start Date', 'End Date', 'Status'],
+                data: data,
+                summary: `Total Members: ${members.length} | Active: ${members.filter(m => m.status === 'Active').length}`
+            };
+        }
+        
+        function getIssuesReportData() {
+            // This would come from actual issue data
+            return {
+                title: 'Active Issues',
+                columns: ['Serial No', 'Book/Movie', 'Membership ID', 'Member Name', 'Date of Issue', 'Date of Return', 'Status'],
+                data: [
+                    ['FCB000001', 'The Great Adventure', 'MEM000001', 'Rahul Sharma', '2024-01-20', '2024-02-04', 'Active'],
+                    ['ENM000002', 'Adventure Film', 'MEM000002', 'Priya Patel', '2024-01-22', '2024-02-06', 'Active']
+                ],
+                summary: 'Active Issues: 2 | Due this week: 1'
+            };
+        }
+        
+        function getOverdueReportData() {
+            return {
+                title: 'Overdue Returns',
+                columns: ['Serial No', 'Book', 'Membership ID', 'Date of Issue', 'Date of Return', 'Days Overdue', 'Fine Calculated'],
+                data: [
+                    ['SCB000002', 'Advanced Physics', 'MEM000005', '2024-01-10', '2024-01-25', '5', '₹50']
+                ],
+                summary: 'Overdue Items: 1 | Total Fine Due: ₹50'
+            };
+        }
+        
+        function getPendingReportData() {
+            return {
+                title: 'Pending Issue Requests',
+                columns: ['Membership ID', 'Name of Book/Movie', 'Requested Date', 'Priority', 'Status'],
+                data: [
+                    ['MEM000012', 'Data Science Basics', '2024-01-24', 'High', 'Pending']
+                ],
+                summary: 'Pending Requests: 1 | High Priority: 1'
+            };
+        }
+    </script>
+    
+    <style>
+        .report-selection {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .report-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .report-type-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+        
+        .report-type-card:hover {
+            border-color: var(--secondary-color);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+        
+        .report-type-card i {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .report-type-card h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .report-type-card p {
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .report-content {
+            display: block;
+        }
+        
+        .report-controls {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+        
+        .summary-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+        }
+        
+        .summary-box i {
+            font-size: 2rem;
+            color: #388e3c;
+        }
+        
+        .summary-box h4 {
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .summary-box p {
+            color: var(--dark-gray);
+            font-size: 14px;
+        }
+        
+        .summary-box small {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .mt-2 {
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .report-types-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .control-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .control-buttons .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</body>
+</html>

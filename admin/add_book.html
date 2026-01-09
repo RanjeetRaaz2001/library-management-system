@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Book/Movie - Library Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar (same as add_member.html) -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS Admin</h2>
+            <p class="role-badge status-active">Administrator</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Maintenance</h3>
+                <ul class="nav-links">
+                    <li><a href="add_member.html"><i class="fas fa-user-plus"></i> Add Member</a></li>
+                    <li><a href="add_book.html" class="active"><i class="fas fa-book-medical"></i> Add Book</a></li>
+                    <li><a href="user_management.html"><i class="fas fa-users-cog"></i> User Management</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="maintenance.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-admin" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-plus-circle"></i> Add Book/Movie</h1>
+            <p>Add new items to library collection</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="form-section">
+            <div class="form-header">
+                <h2>Add New Item</h2>
+                <p class="chart-link" style="color: var(--secondary-color); cursor: pointer;"><i class="fas fa-info-circle"></i> View Requirements</p>
+            </div>
+            
+            <form id="addItemForm">
+                <!-- Item Type - Radio Buttons -->
+                <div class="form-group">
+                    <label><i class="fas fa-file-alt"></i> Item Type *</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="itemBook" name="itemType" value="book" checked data-default="true">
+                            <label for="itemBook">Book</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="itemMovie" name="itemType" value="movie">
+                            <label for="itemMovie">Movie</label>
+                        </div>
+                    </div>
+                    <div class="error-message" id="typeError"></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemName"><i class="fas fa-heading"></i> Name *</label>
+                        <input type="text" id="itemName" name="itemName" required 
+                               placeholder="Enter book/movie name">
+                        <div class="error-message" id="nameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemAuthor"><i class="fas fa-user-edit"></i> Author/Director *</label>
+                        <input type="text" id="itemAuthor" name="itemAuthor" required 
+                               placeholder="Enter author/director name">
+                        <div class="error-message" id="authorError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemCategory"><i class="fas fa-tags"></i> Category *</label>
+                        <select id="itemCategory" name="itemCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="Science">Science</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Children">Children</option>
+                            <option value="Personal Development">Personal Development</option>
+                            <option value="Educational">Educational</option>
+                            <option value="Entertainment">Entertainment</option>
+                        </select>
+                        <div class="error-message" id="categoryError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="procurementDate"><i class="fas fa-calendar-alt"></i> Procurement Date *</label>
+                        <input type="date" id="procurementDate" name="procurementDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemQuantity"><i class="fas fa-copy"></i> Quantity/Copies *</label>
+                        <input type="number" id="itemQuantity" name="itemQuantity" required 
+                               min="1" value="1" placeholder="Number of copies">
+                        <div class="error-message" id="quantityError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemCost"><i class="fas fa-rupee-sign"></i> Cost per Item (₹)</label>
+                        <input type="number" id="itemCost" name="itemCost" 
+                               min="0" step="0.01" placeholder="Optional">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemDescription"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="itemDescription" name="itemDescription" rows="3" 
+                              placeholder="Brief description (optional)"></textarea>
+                </div>
+                
+                <!-- Auto-generated Serial Number -->
+                <div class="form-group">
+                    <label for="serialNumber"><i class="fas fa-barcode"></i> Serial Number (Auto-generated)</label>
+                    <input type="text" id="serialNumber" name="serialNumber" readonly 
+                           style="background-color: #f0f0f0; font-family: monospace;">
+                    <small class="serial-note">Format: [Category Code][B/M][6-digit number]</small>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Confirm & Add Item
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions-box">
+            <h3><i class="fas fa-clipboard-check"></i> Instructions</h3>
+            <ul>
+                <li><strong>All fields marked with * are mandatory</strong></li>
+                <li>Select item type: Book (default) or Movie</li>
+                <li>Serial number is auto-generated based on category and type</li>
+                <li>Quantity defaults to 1</li>
+                <li>Cost field is optional</li>
+                <li>Description is optional</li>
+                <li>Error message displayed if any mandatory field is missing</li>
+            </ul>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                <h4><i class="fas fa-lightbulb"></i> Category Codes</h4>
+                <div class="category-codes">
+                    <span>Science: SC</span>
+                    <span>Economics: EC</span>
+                    <span>Fiction: FC</span>
+                    <span>Children: CH</span>
+                    <span>Personal Development: PD</span>
+                    <span>Educational: ED</span>
+                    <span>Entertainment: EN</span>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+   <script src="../js/auth.js"></script>
+<script src="../js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Add Book page loaded");
+        
+        // Initialize storage
+        LibraryStorage.init();
+        
+        // Set user info
+        const userName = sessionStorage.getItem('userName') || 'Administrator';
+        document.getElementById('userProfile').innerHTML = `
+            <i class="fas fa-user-circle fa-2x"></i>
+            <div>
+                <strong>${userName}</strong><br>
+                <small>Administrator</small>
+            </div>
+        `;
+        
+        // Set today's date as default procurement date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('procurementDate').value = today;
+        document.getElementById('procurementDate').min = today;
+        
+        // Generate serial number function
+        function generateSerialNumber() {
+            const category = document.getElementById('itemCategory').value;
+            const itemType = document.querySelector('input[name="itemType"]:checked').value;
+            
+            if (!category) {
+                document.getElementById('serialNumber').value = '';
+                return;
+            }
+            
+            const serial = LibraryStorage.generateSerialNumber(category, itemType === 'book' ? 'B' : 'M');
+            document.getElementById('serialNumber').value = serial;
+            console.log("Generated serial:", serial);
+        }
+        
+        // Generate serial when category or type changes
+        document.getElementById('itemCategory').addEventListener('change', generateSerialNumber);
+        document.querySelectorAll('input[name="itemType"]').forEach(radio => {
+            radio.addEventListener('change', generateSerialNumber);
+        });
+        
+        // Initial generation
+        setTimeout(generateSerialNumber, 100);
+        
+        // Form submission
+        document.getElementById('addItemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Form submitted");
+            
+            // Validate all required fields
+            const requiredFields = ['itemName', 'itemAuthor', 'itemCategory', 'itemQuantity', 'procurementDate'];
+            let isValid = true;
+            
+            // Clear previous errors
+            requiredFields.forEach(fieldId => {
+                const errorElement = document.getElementById(fieldId + 'Error');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+            
+            // Check each required field
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorElement = document.getElementById(fieldId + 'Error');
+                
+                if (!field || !field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('input-error');
+                    if (errorElement) {
+                        errorElement.textContent = 'This field is required';
+                        errorElement.style.display = 'block';
+                    }
+                    console.error(`Field ${fieldId} is empty`);
+                } else {
+                    field.classList.remove('input-error');
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill all required fields marked with *');
+                return;
+            }
+            
+            // Get form data
+            const itemType = document.querySelector('input[name="itemType"]:checked').value;
+            const itemData = {
+                name: document.getElementById('itemName').value.trim(),
+                author: document.getElementById('itemAuthor').value.trim(),
+                category: document.getElementById('itemCategory').value,
+                copies: parseInt(document.getElementById('itemQuantity').value),
+                quantity: parseInt(document.getElementById('itemQuantity').value),
+                procurementDate: document.getElementById('procurementDate').value,
+                cost: document.getElementById('itemCost').value || '0',
+                description: document.getElementById('itemDescription').value.trim(),
+                serial: document.getElementById('serialNumber').value
+            };
+            
+            console.log("Item data to save:", itemData);
+            
+            // Save to storage
+            let savedItem;
+            if (itemType === 'book') {
+                savedItem = LibraryStorage.addBook(itemData);
+                if (savedItem) {
+                    console.log("Book saved successfully:", savedItem);
+                    showMessage(`Book "${itemData.name}" added successfully!`, 'success');
+                    
+                    // Redirect to book list after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'reports.html?type=books';
+                    }, 2000);
+                } else {
+                    console.error("Failed to save book");
+                    showMessage('Failed to add book. Please try again.', 'error');
+                }
+            } else {
+                savedItem = LibraryStorage.addMovie(itemData);
+                if (savedItem) {
+                    showMessage(`Movie "${itemData.name}" added successfully!`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'reports.html?type=movies';
+                    }, 2000);
+                } else {
+                    showMessage('Failed to add movie. Please try again.', 'error');
+                }
+            }
+            
+            // Reset form only if saved successfully
+            if (savedItem) {
+                setTimeout(() => {
+                    this.reset();
+                    document.getElementById('procurementDate').value = today;
+                    document.getElementById('itemQuantity').value = 1;
+                    generateSerialNumber();
+                }, 500);
+            }
+        });
+        
+        // Chart link functionality
+        document.querySelector('.chart-link').addEventListener('click', function() {
+            alert('Add Book/Movie Requirements:\n\n1. Select Book (default) or Movie\n2. All fields are mandatory except cost and description\n3. Serial number auto-generated\n4. Quantity defaults to 1\n5. Error message if mandatory fields missing\n6. Category must be selected from dropdown');
+        });
+        
+        // Debug button (for testing)
+        const debugBtn = document.createElement('button');
+        debugBtn.innerHTML = '<i class="fas fa-bug"></i> Debug';
+        debugBtn.className = 'btn btn-secondary';
+        debugBtn.style.position = 'fixed';
+        debugBtn.style.bottom = '20px';
+        debugBtn.style.right = '20px';
+        debugBtn.style.zIndex = '1000';
+        debugBtn.onclick = function() {
+            console.log("=== DEBUG INFO ===");
+            console.log("LocalStorage books:", LibraryStorage.getBooks());
+            console.log("Total books:", LibraryStorage.getBooks().length);
+            alert(`Debug Info:\n\nTotal books in storage: ${LibraryStorage.getBooks().length}\nCheck console for details.`);
+        };
+        document.body.appendChild(debugBtn);
+    });
+    
+    // Show message function (if not already in main.js)
+    function showMessage(message, type) {
+        // Remove existing messages
+        const existingMessages = document.querySelectorAll('.message');
+        existingMessages.forEach(msg => msg.remove());
+        
+        // Create new message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+        `;
+        
+        // Add styles
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+            color: ${type === 'success' ? '#155724' : '#721c24'};
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(messageDiv);
+        
+        // Remove message after 5 seconds
+        setTimeout(() => {
+            messageDiv.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => messageDiv.remove(), 300);
+        }, 5000);
+    }
+</script>
+
+    
+    <style>
+        .category-codes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .category-codes span {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #ddd;
+        }
+        
+        .serial-note {
+            display: block;
+            margin-top: 5px;
+            color: var(--dark-gray);
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</body>
+</html>

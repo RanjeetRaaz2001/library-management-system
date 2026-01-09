@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Library User</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS User</h2>
+            <p class="role-badge status-active">Library User</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Reports</h3>
+                <ul class="nav-links">
+                    <li><a href="reports.html?type=books" class="active"><i class="fas fa-book"></i> Book List</a></li>
+                    <li><a href="reports.html?type=movies"><i class="fas fa-film"></i> Movie List</a></li>
+                    <li><a href="reports.html?type=myissues"><i class="fas fa-exchange-alt"></i> My Issues</a></li>
+                    <li><a href="reports.html?type=myfines"><i class="fas fa-money-bill-wave"></i> My Fines</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Transactions</h3>
+                <ul class="nav-links">
+                    <li><a href="transactions.html?action=search"><i class="fas fa-search"></i> Book Search</a></li>
+                    <li><a href="transactions.html?action=issue"><i class="fas fa-share-square"></i> Issue Book</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="dashboard.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-user" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-chart-bar"></i> User Reports</h1>
+            <p>View library catalog and your activities</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- User-specific report selection -->
+        <div class="report-selection">
+            <h2>Available Reports</h2>
+            <p class="user-note"><i class="fas fa-info-circle"></i> Note: As a user, you can access reports and transactions but not maintenance.</p>
+            
+            <div class="report-types-grid">
+                <a href="?type=books" class="report-type-card" data-type="books">
+                    <i class="fas fa-book fa-3x"></i>
+                    <h3>Master List of Books</h3>
+                    <p>Browse all available books</p>
+                    <span class="badge badge-primary">View Catalog</span>
+                </a>
+                
+                <a href="?type=movies" class="report-type-card" data-type="movies">
+                    <i class="fas fa-film fa-3x"></i>
+                    <h3>Master List of Movies</h3>
+                    <p>Browse all available movies</p>
+                    <span class="badge badge-primary">View Catalog</span>
+                </a>
+                
+                <a href="?type=myissues" class="report-type-card" data-type="myissues">
+                    <i class="fas fa-exchange-alt fa-3x"></i>
+                    <h3>My Active Issues</h3>
+                    <p>Books/movies you have issued</p>
+                    <span class="badge badge-warning">3 items</span>
+                </a>
+                
+                <a href="?type=myfines" class="report-type-card" data-type="myfines">
+                    <i class="fas fa-money-bill-wave fa-3x"></i>
+                    <h3>My Fine History</h3>
+                    <p>Your fine payments and dues</p>
+                    <span class="badge badge-success">All paid</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Report Display Area -->
+        <div class="report-controls" id="reportControls" style="display: none;">
+            <div class="controls-header">
+                <h3 id="reportTitle">Report Title</h3>
+                <div class="control-buttons">
+                    <button class="btn btn-secondary print-btn">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-secondary search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-box" id="searchBox" style="display: none; margin-bottom: 20px;">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <input type="text" id="reportSearch" placeholder="Search in report...">
+                    </div>
+                    <button class="btn btn-primary" id="performSearch">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container" id="reportTableContainer">
+                <!-- Report table will be loaded here -->
+            </div>
+            
+            <div class="user-instructions">
+                <h4><i class="fas fa-lightbulb"></i> User Instructions</h4>
+                <ul>
+                    <li>Click on column headers to sort</li>
+                    <li>Use search to find specific items</li>
+                    <li>Print reports for your records</li>
+                    <li>Contact librarian for any issues</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+       // Update loadUserReport function in user/reports.html
+function loadUserReport(type) {
+    const reportContent = document.querySelector('.report-selection');
+    const reportControls = document.getElementById('reportControls');
+    const reportTitle = document.getElementById('reportTitle');
+    const tableContainer = document.getElementById('reportTableContainer');
+    
+    // Show controls and hide selection
+    reportControls.style.display = 'block';
+    reportContent.style.display = 'none';
+    
+    let reportData;
+    
+    switch(type) {
+        case 'books':
+            reportData = getUserBooksData();
+            break;
+        case 'movies':
+            reportData = getUserMoviesData();
+            break;
+        case 'myissues':
+            reportData = getMyIssuesData();
+            break;
+        case 'myfines':
+            reportData = getMyFinesData();
+            break;
+        default:
+            reportData = getUserBooksData();
+    }
+    
+    // Set report title
+    reportTitle.textContent = reportData.title;
+    
+    // Generate table HTML
+    let tableHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+    `;
+    
+    reportData.columns.forEach(column => {
+        tableHTML += `<th>${column}</th>`;
+    });
+    
+    tableHTML += `</tr></thead><tbody>`;
+    
+    reportData.data.forEach(row => {
+        tableHTML += `<tr>`;
+        row.forEach(cell => {
+            tableHTML += `<td>${cell}</td>`;
+        });
+        tableHTML += `</tr>`;
+    });
+    
+    tableHTML += `</tbody></table>`;
+    
+    // Set table content
+    tableContainer.innerHTML = tableHTML;
+}
+
+// Helper functions for user reports
+function getUserBooksData() {
+    const books = LibraryStorage.getBooks();
+    const availableBooks = books.filter(book => book.status === 'Available');
+    
+    const data = availableBooks.map(book => [
+        book.serial,
+        book.name,
+        book.author,
+        book.category,
+        'Available',
+        book.copies || '1'
+    ]);
+    
+    return {
+        title: 'Available Books Catalog',
+        columns: ['Serial No', 'Book Name', 'Author', 'Category', 'Status', 'Available Copies'],
+        data: data.slice(0, 20) // Show first 20 books
+    };
+}
+
+function getUserMoviesData() {
+    const movies = LibraryStorage.getMovies();
+    
+    const data = movies.map(movie => [
+        movie.serial,
+        movie.name,
+        movie.author,
+        movie.category,
+        movie.duration || 'N/A',
+        movie.status === 'Available' ? 'Yes' : 'No'
+    ]);
+    
+    return {
+        title: 'Available Movies Catalog',
+        columns: ['Serial No', 'Movie Name', 'Director', 'Category', 'Duration', 'Available'],
+        data: data
+    };
+} 
+    </script>
+    
+    <style>
+        .report-selection {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .user-note {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        .report-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .report-type-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+        
+        .report-type-card:hover {
+            border-color: var(--user-color);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+        
+        .report-type-card i {
+            margin-bottom: 15px;
+            color: var(--user-color);
+        }
+        
+        .report-type-card h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .report-type-card p {
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .report-controls {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+        
+        .search-box .form-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .user-instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+        }
+        
+        .user-instructions h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .user-instructions li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-instructions li:before {
+            content: '✓';
+            color: var(--user-color);
+            font-weight: bold;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .report-types-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .control-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .search-box .form-row {
+                flex-direction: column;
+            }
+            
+            .search-box .form-group {
+                width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>

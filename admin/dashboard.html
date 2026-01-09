@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Library Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS Admin</h2>
+            <p class="role-badge status-active">Administrator</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Maintenance</h3>
+                <ul class="nav-links">
+                    <li><a href="add_member.html"><i class="fas fa-user-plus"></i> Add Member</a></li>
+                    <li><a href="add_book.html"><i class="fas fa-book-medical"></i> Add Book</a></li>
+                    <li><a href="user_management.html"><i class="fas fa-users-cog"></i> User Management</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Reports</h3>
+                <ul class="nav-links">
+                    <li><a href="reports.html?type=books"><i class="fas fa-book"></i> Book List</a></li>
+                    <li><a href="reports.html?type=members"><i class="fas fa-users"></i> Member List</a></li>
+                    <li><a href="reports.html?type=issues"><i class="fas fa-exchange-alt"></i> Active Issues</a></li>
+                    <li><a href="reports.html?type=overdue"><i class="fas fa-exclamation-triangle"></i> Overdue</a></li>
+                    <li><a href="reports.html?type=pending"><i class="fas fa-clock"></i> Pending</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Transactions</h3>
+                <ul class="nav-links">
+                    <li><a href="../user/transactions.html?action=search"><i class="fas fa-search"></i> Book Search</a></li>
+                    <li><a href="../user/transactions.html?action=issue"><i class="fas fa-share-square"></i> Issue Book</a></li>
+                    <li><a href="../user/transactions.html?action=return"><i class="fas fa-undo"></i> Return Book</a></li>
+                    <li><a href="../user/transactions.html?action=fine"><i class="fas fa-money-bill-wave"></i> Pay Fine</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-admin" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Admin Dashboard</h1>
+            <p>Welcome back, <strong id="adminName">Administrator</strong> | <span class="chart-link" style="color: var(--secondary-color); cursor: pointer;">View Chart</span></p>
+        </div>
+        
+        <div class="header-right">
+            <div class="notification-bell">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count" id="notificationCount">0</span>
+            </div>
+            
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon books">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalBooks">0</h3>
+                    <p>Total Books</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon members">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalMembers">0</h3>
+                    <p>Active Members</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon issues">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="activeIssues">0</h3>
+                    <p>Books Issued</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon fines">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="pendingFines">₹0</h3>
+                    <p>Pending Fines</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <div class="actions-header">
+                <h2>Quick Actions</h2>
+                <button class="btn btn-sm btn-secondary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="actions-grid">
+                <a href="add_book.html" class="action-btn">
+                    <i class="fas fa-plus-circle"></i>
+                    Add Book
+                </a>
+                <a href="add_member.html" class="action-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Add Member
+                </a>
+                <a href="../user/transactions.html?action=issue" class="action-btn">
+                    <i class="fas fa-share-square"></i>
+                    Issue Book
+                </a>
+                <a href="../user/transactions.html?action=return" class="action-btn">
+                    <i class="fas fa-undo"></i>
+                    Return Book
+                </a>
+                <a href="reports.html?type=overdue" class="action-btn">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Overdue Books
+                </a>
+                <a href="user_management.html" class="action-btn">
+                    <i class="fas fa-users-cog"></i>
+                    Manage Users
+                </a>
+            </div>
+        </section>
+        
+        <!-- Two Column Layout -->
+        <div class="dashboard-columns">
+            <!-- Left Column: Recent Books -->
+            <div class="dashboard-column">
+                <section class="recent-activity">
+                    <div class="activity-header">
+                        <h3><i class="fas fa-book"></i> Recently Added Books</h3>
+                        <a href="reports.html?type=books" class="btn btn-secondary btn-sm">View All</a>
+                    </div>
+                    <div class="activity-list" id="recentBooks">
+                        <!-- Dynamic content -->
+                    </div>
+                    <div class="empty-state" id="noBooksMessage" style="display: none;">
+                        <i class="fas fa-book fa-3x"></i>
+                        <h4>No Books Added Yet</h4>
+                        <p>Add your first book to get started</p>
+                        <a href="add_book.html" class="btn btn-primary">Add Book</a>
+                    </div>
+                </section>
+                
+                <!-- Library Statistics -->
+                <section class="chart-container">
+                    <div class="chart-header">
+                        <h3>Library Statistics</h3>
+                    </div>
+                    <div class="stats-chart">
+                        <div class="chart-item">
+                            <div class="chart-label">Books by Category</div>
+                            <div class="chart-bars" id="categoryChart">
+                                <!-- Dynamic chart -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Right Column: Recent Activity & Overdue Books -->
+            <div class="dashboard-column">
+                <!-- Recent Activity -->
+                <section class="recent-activity">
+                    <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- Dynamic content -->
+                    </div>
+                </section>
+                
+                <!-- Overdue Books -->
+                <section class="chart-container">
+                    <div class="chart-header">
+                        <h3>Overdue Books</h3>
+                        <a href="reports.html?type=overdue" class="btn btn-secondary btn-sm">View All</a>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Book Name</th>
+                                    <th>Member</th>
+                                    <th>Due Date</th>
+                                    <th>Days Overdue</th>
+                                    <th>Fine</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overdueBooks">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                        <div class="empty-state" id="noOverdueMessage" style="display: none;">
+                            <i class="fas fa-check-circle fa-2x" style="color: var(--user-color);"></i>
+                            <p>No overdue books at the moment</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        console.log("Admin Dashboard loaded");
+        
+        // Activity log storage
+        const ActivityLog = {
+            getLogs() {
+                return JSON.parse(localStorage.getItem('activityLogs') || '[]');
+            },
+            
+            addLog(action, details) {
+                const logs = this.getLogs();
+                logs.unshift({
+                    id: Date.now(),
+                    action,
+                    details,
+                    timestamp: new Date().toISOString(),
+                    user: sessionStorage.getItem('userName') || 'Admin'
+                });
+                
+                // Keep only last 50 logs
+                if (logs.length > 50) {
+                    logs.length = 50;
+                }
+                
+                localStorage.setItem('activityLogs', JSON.stringify(logs));
+                return logs[0];
+            },
+            
+            getRecentLogs(limit = 10) {
+                const logs = this.getLogs();
+                return logs.slice(0, limit);
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize storage
+            LibraryStorage.init();
+            
+            // Set user info
+            const userName = sessionStorage.getItem('userName') || 'Administrator';
+            document.getElementById('adminName').textContent = userName;
+            
+            // Populate user profile
+            document.getElementById('userProfile').innerHTML = `
+                <i class="fas fa-user-circle fa-2x"></i>
+                <div>
+                    <strong>${userName}</strong><br>
+                    <small>Administrator</small>
+                </div>
+            `;
+            
+            // Load dashboard data
+            loadDashboardData();
+            
+            // Chart link functionality
+            const chartLink = document.querySelector('.chart-link');
+            if (chartLink) {
+                chartLink.addEventListener('click', function() {
+                    alert('System Flow Chart\n\nMain Flow:\n1. Login → Role-based Home\n2. Admin: Maintenance | Reports | Transactions\n3. User: Reports | Transactions\n\nNote: This link is for documentation purposes only.');
+                });
+            }
+            
+            // Add sample activity logs if none exist
+            if (ActivityLog.getLogs().length === 0) {
+                addSampleActivityLogs();
+            }
+            
+            // Auto-refresh dashboard every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+        
+        // Load dashboard data from storage
+        function loadDashboardData() {
+            console.log("Loading dashboard data...");
+            
+            // Get data from storage
+            const books = LibraryStorage.getBooks();
+            const members = LibraryStorage.getMembers();
+            const movies = LibraryStorage.getMovies();
+            
+            console.log("Data loaded:", {
+                books: books.length,
+                members: members.length,
+                movies: movies.length
+            });
+            
+            // Update stats
+            updateStats(books, members);
+            
+            // Update recent books
+            updateRecentBooks(books);
+            
+            // Update category chart
+            updateCategoryChart(books);
+            
+            // Update recent activity
+            updateRecentActivity();
+            
+            // Update overdue books
+            updateOverdueBooks();
+            
+            // Update notifications
+            updateNotifications(books);
+        }
+        
+        // Update statistics
+        function updateStats(books, members) {
+            // Calculate statistics
+            const totalBooks = books.length;
+            const availableBooks = books.filter(b => b.status === 'Available').length;
+            const issuedBooks = books.filter(b => b.status === 'Issued').length;
+            const totalMembers = members.length;
+            const activeMembers = members.filter(m => m.status === 'Active').length;
+            
+            // Calculate pending fines (example calculation)
+            const pendingFines = issuedBooks * 10; // Example: ₹10 per issued book
+            
+            // Update DOM
+            document.getElementById('totalBooks').textContent = totalBooks;
+            document.getElementById('totalMembers').textContent = activeMembers;
+            document.getElementById('activeIssues').textContent = issuedBooks;
+            document.getElementById('pendingFines').textContent = `₹${pendingFines}`;
+        }
+        
+        // Update recent books
+        function updateRecentBooks(books) {
+            const recentBooksContainer = document.getElementById('recentBooks');
+            const noBooksMessage = document.getElementById('noBooksMessage');
+            
+            if (books.length === 0) {
+                recentBooksContainer.style.display = 'none';
+                noBooksMessage.style.display = 'block';
+                return;
+            }
+            
+            noBooksMessage.style.display = 'none';
+            recentBooksContainer.style.display = 'block';
+            
+            // Sort by added date (newest first)
+            const sortedBooks = [...books].sort((a, b) => {
+                return new Date(b.addedDate || b.procurementDate || 0) - 
+                       new Date(a.addedDate || a.procurementDate || 0);
+            });
+            
+            // Take only last 5 books
+            const recentBooks = sortedBooks.slice(0, 5);
+            
+            let html = '';
+            recentBooks.forEach(book => {
+                const addedDate = book.addedDate || book.procurementDate;
+                const timeAgo = getTimeAgo(addedDate);
+                
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: #e3f2fd; color: #1976d2;">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="activity-details">
+                            <h4>${book.name || 'Unnamed Book'}</h4>
+                            <p>${book.author || 'Unknown Author'} • ${book.category || 'Uncategorized'}</p>
+                            <small class="text-muted">Serial: ${book.serial || 'N/A'}</small>
+                        </div>
+                        <div class="activity-time">
+                            ${timeAgo}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            recentBooksContainer.innerHTML = html;
+        }
+        
+        // Update category chart
+        function updateCategoryChart(books) {
+            const categoryChart = document.getElementById('categoryChart');
+            
+            // Count books by category
+            const categoryCounts = {};
+            books.forEach(book => {
+                const category = book.category || 'Uncategorized';
+                categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            });
+            
+            // Sort by count (descending)
+            const sortedCategories = Object.entries(categoryCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Top 5 categories
+            
+            if (sortedCategories.length === 0) {
+                categoryChart.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        <i class="fas fa-chart-pie fa-2x"></i>
+                        <p>No data available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Find max count for scaling
+            const maxCount = Math.max(...sortedCategories.map(c => c[1]));
+            
+            let chartHTML = '';
+            sortedCategories.forEach(([category, count]) => {
+                const percentage = (count / maxCount) * 100;
+                const barWidth = Math.max(20, percentage);
+                
+                chartHTML += `
+                    <div class="chart-bar-item">
+                        <div class="bar-label">${category}</div>
+                        <div class="bar-container">
+                            <div class="bar" style="width: ${barWidth}%; background: ${getCategoryColor(category)};"></div>
+                            <span class="bar-count">${count}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            categoryChart.innerHTML = chartHTML;
+        }
+        
+        // Update recent activity
+        function updateRecentActivity() {
+            const recentActivity = document.getElementById('recentActivity');
+            const logs = ActivityLog.getRecentLogs(5);
+            
+            if (logs.length === 0) {
+                recentActivity.innerHTML = `
+                    <div class="empty-activity">
+                        <i class="fas fa-history fa-2x"></i>
+                        <p>No recent activity</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            logs.forEach(log => {
+                const timeAgo = getTimeAgo(log.timestamp);
+                const icon = getActivityIcon(log.action);
+                
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: #f3e5f5; color: #7b1fa2;">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <h4>${log.action}</h4>
+                            <p>${log.details}</p>
+                            <small class="text-muted">By: ${log.user}</small>
+                        </div>
+                        <div class="activity-time">
+                            ${timeAgo}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            recentActivity.innerHTML = html;
+        }
+        
+        // Update overdue books
+        function updateOverdueBooks() {
+            const overdueBooks = document.getElementById('overdueBooks');
+            const noOverdueMessage = document.getElementById('noOverdueMessage');
+            
+            // This would come from actual issue data
+            // For demo, using sample data
+            const sampleOverdue = [
+                { book: 'The Great Adventure', member: 'MEM012', due: '2024-01-20', days: 5, fine: '₹50' },
+                { book: 'Economics Basics', member: 'MEM045', due: '2024-01-18', days: 7, fine: '₹70' }
+            ];
+            
+            if (sampleOverdue.length === 0) {
+                overdueBooks.style.display = 'none';
+                noOverdueMessage.style.display = 'block';
+                return;
+            }
+            
+            noOverdueMessage.style.display = 'none';
+            overdueBooks.style.display = 'table-row-group';
+            
+            let html = '';
+            sampleOverdue.forEach(book => {
+                html += `
+                    <tr>
+                        <td>${book.book}</td>
+                        <td>${book.member}</td>
+                        <td>${book.due}</td>
+                        <td><span class="badge badge-danger">${book.days} days</span></td>
+                        <td><strong>${book.fine}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            overdueBooks.innerHTML = html;
+        }
+        
+        // Update notifications
+        function updateNotifications(books) {
+            const notificationCount = document.getElementById('notificationCount');
+            
+            // Calculate notifications
+            const issuedBooks = books.filter(b => b.status === 'Issued').length;
+            const overdueCount = 2; // Sample count
+            
+            const totalNotifications = issuedBooks + overdueCount;
+            
+            if (totalNotifications > 0) {
+                notificationCount.textContent = totalNotifications;
+                notificationCount.style.display = 'block';
+            } else {
+                notificationCount.style.display = 'none';
+            }
+        }
+        
+        // Helper functions
+        function getTimeAgo(dateString) {
+            if (!dateString) return 'Just now';
+            
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffDay > 0) return `${diffDay}d ago`;
+            if (diffHour > 0) return `${diffHour}h ago`;
+            if (diffMin > 0) return `${diffMin}m ago`;
+            return 'Just now';
+        }
+        
+        function getCategoryColor(category) {
+            const colors = {
+                'Science': '#2196f3',
+                'Economics': '#4caf50',
+                'Fiction': '#ff9800',
+                'Children': '#e91e63',
+                'Personal Development': '#9c27b0',
+                'Educational': '#00bcd4',
+                'Entertainment': '#ff5722'
+            };
+            return colors[category] || '#607d8b';
+        }
+        
+        function getActivityIcon(action) {
+            const icons = {
+                'Book Added': 'fas fa-book-medical',
+                'Member Added': 'fas fa-user-plus',
+                'Book Issued': 'fas fa-share-square',
+                'Book Returned': 'fas fa-undo',
+                'Fine Paid': 'fas fa-money-bill-wave',
+                'User Added': 'fas fa-user-cog'
+            };
+            return icons[action] || 'fas fa-circle';
+        }
+        
+        function addSampleActivityLogs() {
+            ActivityLog.addLog('Book Added', '"Introduction to Computer Science" added to Science category');
+            ActivityLog.addLog('Member Added', 'John Doe registered with 1-year membership');
+            ActivityLog.addLog('Book Issued', '"Economics for Beginners" issued to MEM023');
+            ActivityLog.addLog('Book Returned', '"The Great Adventure" returned with ₹50 fine paid');
+        }
+        
+        // Refresh dashboard
+        function refreshDashboard() {
+            console.log("Refreshing dashboard...");
+            loadDashboardData();
+            
+            // Show refresh notification
+            const notification = document.createElement('div');
+            notification.className = 'refresh-notification';
+            notification.innerHTML = '<i class="fas fa-check-circle"></i> Dashboard refreshed';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #4caf50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideUp 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideDown 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        // Add animation styles
+        const animationStyles = document.createElement('style');
+        animationStyles.textContent = `
+            @keyframes slideUp {
+                from { transform: translateY(100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes slideDown {
+                from { transform: translateY(0); opacity: 1; }
+                to { transform: translateY(100%); opacity: 0; }
+            }
+            .refresh-notification {
+                animation: slideUp 0.3s ease;
+            }
+            .text-muted {
+                color: #6c757d;
+                font-size: 12px;
+            }
+        `;
+        document.head.appendChild(animationStyles);
+    </script>
+    
+    <style>
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .dashboard-column {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .actions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .stats-chart {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .chart-item {
+            margin-bottom: 20px;
+        }
+        
+        .chart-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .chart-bar-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .bar-label {
+            width: 150px;
+            font-size: 14px;
+            color: var(--dark-gray);
+        }
+        
+        .bar-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bar {
+            height: 20px;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .bar-count {
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .empty-activity {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--dark-gray);
+        }
+        
+        .empty-activity i {
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--dark-gray);
+        }
+        
+        .empty-state i {
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 1200px) {
+            .dashboard-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .bar-label {
+                width: 100px;
+                font-size: 12px;
+            }
+            
+            .activity-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</body>
+</html>

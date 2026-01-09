@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Library Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS Admin</h2>
+            <p class="role-badge status-active">Administrator</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Maintenance</h3>
+                <ul class="nav-links">
+                    <li><a href="add_member.html"><i class="fas fa-user-plus"></i> Add Member</a></li>
+                    <li><a href="add_book.html"><i class="fas fa-book-medical"></i> Add Book</a></li>
+                    <li><a href="user_management.html" class="active"><i class="fas fa-users-cog"></i> User Management</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="maintenance.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-admin" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-users-cog"></i> User Management</h1>
+            <p>Manage system users and permissions</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="card">
+            <div class="card-header">
+                <h2>User Management Panel</h2>
+                <p class="chart-link" style="color: var(--secondary-color); cursor: pointer;"><i class="fas fa-info-circle"></i> View Requirements</p>
+            </div>
+            
+            <div class="card-body">
+                <!-- User Type Selection -->
+                <div class="form-section" style="margin-bottom: 30px;">
+                    <h3><i class="fas fa-user-tag"></i> Select User Type</h3>
+                    <div class="radio-group" style="margin-top: 15px;">
+                        <div class="radio-option">
+                            <input type="radio" id="newUser" name="userType" value="new" checked data-default="true">
+                            <label for="newUser">New User</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="existingUser" name="userType" value="existing">
+                            <label for="existingUser">Existing User</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Form -->
+                <form id="userManagementForm">
+                    <!-- New User Form -->
+                    <div id="newUserSection">
+                        <h3><i class="fas fa-user-plus"></i> Add New User</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userName"><i class="fas fa-user"></i> Name *</label>
+                                <input type="text" id="userName" name="userName" required 
+                                       placeholder="Enter full name">
+                                <div class="error-message" id="userNameError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userEmail"><i class="fas fa-envelope"></i> Email *</label>
+                                <input type="email" id="userEmail" name="userEmail" required 
+                                       placeholder="user@example.com">
+                                <div class="error-message" id="userEmailError"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userLoginId"><i class="fas fa-id-card"></i> Login ID *</label>
+                                <input type="text" id="userLoginId" name="userLoginId" required 
+                                       placeholder="Create login ID">
+                                <div class="error-message" id="loginIdError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userPassword"><i class="fas fa-lock"></i> Password *</label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="userPassword" name="userPassword" required 
+                                           placeholder="Set password">
+                                    <button type="button" class="toggle-password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="error-message" id="passwordError"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Status and Role -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-toggle-on"></i> User Status</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="userActive" name="userActive" checked>
+                                        <label for="userActive">Active</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-user-shield"></i> User Role</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="userAdmin" name="userAdmin">
+                                        <label for="userAdmin">Admin Privileges</label>
+                                    </div>
+                                </div>
+                                <small class="form-text">Check to give admin access</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Existing User Form -->
+                    <div id="existingUserSection" style="display: none;">
+                        <h3><i class="fas fa-user-edit"></i> Update Existing User</h3>
+                        
+                        <div class="form-group">
+                            <label for="searchUserId"><i class="fas fa-search"></i> Search User</label>
+                            <div class="search-wrapper">
+                                <input type="text" id="searchUserId" placeholder="Enter User ID or Name">
+                                <button type="button" class="btn btn-secondary" id="searchUserBtn">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="userDetails" style="display: none;">
+                            <div class="user-details-card">
+                                <h4>User Details</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>User ID</label>
+                                        <input type="text" id="foundUserId" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Current Status</label>
+                                        <input type="text" id="foundUserStatus" readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Update Status</label>
+                                    <div class="radio-group">
+                                        <div class="radio-option">
+                                            <input type="radio" id="statusActive" name="updateStatus" value="active" checked>
+                                            <label for="statusActive">Active</label>
+                                        </div>
+                                        <div class="radio-option">
+                                            <input type="radio" id="statusInactive" name="updateStatus" value="inactive">
+                                            <label for="statusInactive">Inactive</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Update Role</label>
+                                    <div class="checkbox-group">
+                                        <div class="checkbox-option">
+                                            <input type="checkbox" id="updateAdmin" name="updateAdmin">
+                                            <label for="updateAdmin">Make Admin</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="updatePassword">Reset Password (Optional)</label>
+                                    <input type="password" id="updatePassword" placeholder="Leave blank to keep current">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Confirm
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card-footer">
+                <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> Default selection is New User. Name is mandatory. Checkboxes for Active/Admin status.</p>
+            </div>
+        </div>
+        
+        <!-- Existing Users Table -->
+        <div class="form-section" style="margin-top: 30px;">
+            <h3><i class="fas fa-users"></i> Existing Users</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/validations.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user info
+            const userName = sessionStorage.getItem('userName') || 'Administrator';
+            document.getElementById('userProfile').innerHTML = `
+                <i class="fas fa-user-circle fa-2x"></i>
+                <div>
+                    <strong>${userName}</strong><br>
+                    <small>Administrator</small>
+                </div>
+            `;
+            
+            // Toggle between new and existing user forms
+            document.querySelectorAll('input[name="userType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const isNewUser = this.value === 'new';
+                    document.getElementById('newUserSection').style.display = isNewUser ? 'block' : 'none';
+                    document.getElementById('existingUserSection').style.display = isNewUser ? 'none' : 'block';
+                });
+            });
+            
+            // Toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                });
+            });
+            
+            // Search user functionality
+            document.getElementById('searchUserBtn').addEventListener('click', function() {
+                const searchTerm = document.getElementById('searchUserId').value;
+                if (searchTerm) {
+                    // Mock search result
+                    document.getElementById('userDetails').style.display = 'block';
+                    document.getElementById('foundUserId').value = 'USER' + Math.floor(100 + Math.random() * 900);
+                    document.getElementById('foundUserStatus').value = 'Active';
+                }
+            });
+            
+            // Populate users table
+            const users = [
+                { id: 'adm', name: 'Administrator', email: 'admin@library.com', role: 'Admin', status: 'Active', lastLogin: '2024-01-25 10:30' },
+                { id: 'user', name: 'Library User', email: 'user@library.com', role: 'User', status: 'Active', lastLogin: '2024-01-24 14:20' },
+                { id: 'john', name: 'John Doe', email: 'john@example.com', role: 'User', status: 'Active', lastLogin: '2024-01-23 09:15' },
+                { id: 'jane', name: 'Jane Smith', email: 'jane@example.com', role: 'Admin', status: 'Inactive', lastLogin: '2024-01-20 11:45' },
+                { id: 'bob', name: 'Bob Wilson', email: 'bob@example.com', role: 'User', status: 'Active', lastLogin: '2024-01-22 16:30' }
+            ];
+            
+            let usersHTML = '';
+            users.forEach(user => {
+                usersHTML += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="${user.role === 'Admin' ? 'badge badge-danger' : 'badge badge-primary'}">${user.role}</span></td>
+                        <td><span class="${user.status === 'Active' ? 'status-active' : 'status-inactive'}">${user.status}</span></td>
+                        <td>${user.lastLogin}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editUser('${user.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="viewUser('${user.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('usersTable').innerHTML = usersHTML;
+            
+            // Form submission
+            document.getElementById('userManagementForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const isNewUser = document.querySelector('input[name="userType"]:checked').value === 'new';
+                
+                if (isNewUser) {
+                    // Validate new user form
+                    const requiredFields = ['userName', 'userEmail', 'userLoginId', 'userPassword'];
+                    let isValid = true;
+                    
+                    requiredFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        const errorElement = document.getElementById(fieldId + 'Error');
+                        
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.classList.add('input-error');
+                            if (errorElement) {
+                                errorElement.textContent = 'This field is required';
+                                errorElement.style.display = 'block';
+                            }
+                        } else {
+                            field.classList.remove('input-error');
+                            if (errorElement) {
+                                errorElement.style.display = 'none';
+                            }
+                        }
+                    });
+                    
+                    if (isValid) {
+                        const userName = document.getElementById('userName').value;
+                        const isAdmin = document.getElementById('userAdmin').checked;
+                        const role = isAdmin ? 'Admin' : 'User';
+                        
+                        alert(`New user created successfully!\n\nName: ${userName}\nRole: ${role}\nStatus: ${document.getElementById('userActive').checked ? 'Active' : 'Inactive'}\n\nUser can now login with provided credentials.`);
+                        
+                        this.reset();
+                        document.getElementById('userActive').checked = true;
+                    }
+                } else {
+                    // Update existing user
+                    const userId = document.getElementById('foundUserId').value;
+                    if (userId) {
+                        const newStatus = document.querySelector('input[name="updateStatus"]:checked').value;
+                        const isAdmin = document.getElementById('updateAdmin').checked;
+                        
+                        alert(`User ${userId} updated successfully!\n\nNew Status: ${newStatus === 'active' ? 'Active' : 'Inactive'}\nAdmin Privileges: ${isAdmin ? 'Yes' : 'No'}`);
+                        
+                        document.getElementById('userDetails').style.display = 'none';
+                        document.getElementById('searchUserId').value = '';
+                    } else {
+                        alert('Please search for a user first.');
+                    }
+                }
+            });
+            
+            // Chart link functionality
+            document.querySelector('.chart-link').addEventListener('click', function() {
+                alert('User Management Requirements:\n\n1. Select New User (default) or Existing User\n2. Name field is mandatory\n3. Checkbox for Active status\n4. Checkbox for Admin privileges\n5. For existing users, search by ID or name\n6. Can update status and role\n7. Can reset password\n\nNote: Admin can access maintenance, reports and transactions. User cannot access maintenance.');
+            });
+        });
+        
+        // User action functions
+        function editUser(userId) {
+            document.getElementById('existingUser').checked = true;
+            document.getElementById('newUserSection').style.display = 'none';
+            document.getElementById('existingUserSection').style.display = 'block';
+            document.getElementById('searchUserId').value = userId;
+            document.getElementById('searchUserBtn').click();
+        }
+        
+        function viewUser(userId) {
+            alert(`Viewing user: ${userId}\n\nFull details would be shown here including:\n- User information\n- Activity history\n- Permissions\n- Login history\n\nThis is a preview feature.`);
+        }
+    </script>
+    
+    <style>
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-wrapper input {
+            flex: 1;
+        }
+        
+        .user-details-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            color: var(--dark-gray);
+            font-size: 12px;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 2px;
+        }
+    </style>
+</body>
+</html>

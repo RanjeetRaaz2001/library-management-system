@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Library User</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-book"></i> LMS User</h2>
+            <p class="role-badge status-active">Library User</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Main Navigation</h3>
+                <ul class="nav-links">
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Transactions</h3>
+                <ul class="nav-links">
+                    <li><a href="transactions.html?action=search" class="active"><i class="fas fa-search"></i> Book Search</a></li>
+                    <li><a href="transactions.html?action=issue"><i class="fas fa-share-square"></i> Issue Book</a></li>
+                    <li><a href="transactions.html?action=return"><i class="fas fa-undo"></i> Return Book</a></li>
+                    <li><a href="transactions.html?action=fine"><i class="fas fa-money-bill-wave"></i> Pay Fine</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Reports</h3>
+                <ul class="nav-links">
+                    <li><a href="reports.html?type=books"><i class="fas fa-book"></i> Book List</a></li>
+                    <li><a href="reports.html?type=myissues"><i class="fas fa-exchange-alt"></i> My Issues</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="dashboard.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="../index.html" class="btn btn-secondary" style="margin: 10px; display: block; text-align: center;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="logout-btn btn btn-user" style="margin: 10px 20px; display: block; text-align: center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-exchange-alt"></i> Transactions</h1>
+            <p id="transactionTitle">Book Availability Search</p>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-profile" id="userProfile">
+                <!-- Filled by JavaScript -->
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Transaction Navigation -->
+        <div class="transaction-nav">
+            <div class="nav-tabs">
+                <a href="?action=search" class="nav-tab" data-action="search">
+                    <i class="fas fa-search"></i>
+                    <span>Book Search</span>
+                </a>
+                <a href="?action=issue" class="nav-tab" data-action="issue">
+                    <i class="fas fa-share-square"></i>
+                    <span>Issue Book</span>
+                </a>
+                <a href="?action=return" class="nav-tab" data-action="return">
+                    <i class="fas fa-undo"></i>
+                    <span>Return Book</span>
+                </a>
+                <a href="?action=fine" class="nav-tab" data-action="fine">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Pay Fine</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Transaction Content -->
+        <div class="transaction-content">
+            <!-- Book Search Form -->
+            <div id="searchSection" class="transaction-section">
+                <div class="form-section">
+                    <h3><i class="fas fa-search"></i> Check Book Availability</h3>
+                    <form id="bookSearchForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="searchBookName"><i class="fas fa-book"></i> Book Name</label>
+                                <input type="text" id="searchBookName" placeholder="Enter book name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="searchAuthor"><i class="fas fa-user-edit"></i> Author</label>
+                                <input type="text" id="searchAuthor" placeholder="Enter author name">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="searchCategory"><i class="fas fa-tags"></i> Category (Optional)</label>
+                            <select id="searchCategory">
+                                <option value="">All Categories</option>
+                                <option value="Science">Science</option>
+                                <option value="Economics">Economics</option>
+                                <option value="Fiction">Fiction</option>
+                                <option value="Children">Children</option>
+                                <option value="Personal Development">Personal Development</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-instructions">
+                            <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> At least one field (Book Name or Author) must be filled before searching.</p>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Clear
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search Books
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Search Results -->
+                <div id="searchResults" class="results-section" style="display: none;">
+                    <h4>Search Results</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Book Name</th>
+                                    <th>Author Name</th>
+                                    <th>Serial Number</th>
+                                    <th>Category</th>
+                                    <th>Available</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTable">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" onclick="clearSearch()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="btn btn-primary" onclick="proceedToIssue()" disabled id="issueSelectedBtn">
+                            <i class="fas fa-share-square"></i> Issue Selected Book
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Book Issue Form -->
+            <div id="issueSection" class="transaction-section" style="display: none;">
+                <div class="form-section">
+                    <h3><i class="fas fa-share-square"></i> Issue Book</h3>
+                    <form id="bookIssueForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="issueBookName"><i class="fas fa-book"></i> Book Name *</label>
+                                <input type="text" id="issueBookName" required placeholder="Enter book name">
+                                <div class="error-message" id="issueNameError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="issueAuthor"><i class="fas fa-user-edit"></i> Author Name</label>
+                                <input type="text" id="issueAuthor" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="issueSerial"><i class="fas fa-barcode"></i> Serial Number</label>
+                                <input type="text" id="issueSerial" readonly style="background-color: #f0f0f0;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="issueDate"><i class="fas fa-calendar-alt"></i> Issue Date *</label>
+                                <input type="date" id="issueDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="returnDate"><i class="fas fa-calendar-check"></i> Return Date *</label>
+                                <input type="date" id="returnDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="memberId"><i class="fas fa-id-card"></i> Membership ID</label>
+                                <input type="text" id="memberId" value="MEM000123" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="issueRemarks"><i class="fas fa-comment"></i> Remarks (Optional)</label>
+                            <textarea id="issueRemarks" rows="3" placeholder="Any special instructions or notes"></textarea>
+                        </div>
+                        
+                        <div class="form-instructions">
+                            <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
+                            <ul>
+                                <li>Book Name is required</li>
+                                <li>Author name is auto-populated and non-editable</li>
+                                <li>Issue Date cannot be earlier than today</li>
+                                <li>Return Date defaults to 15 days ahead, can be edited earlier</li>
+                                <li>Remarks are non-mandatory</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Confirm Issue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Book Return Form -->
+            <div id="returnSection" class="transaction-section" style="display: none;">
+                <div class="form-section">
+                    <h3><i class="fas fa-undo"></i> Return Book</h3>
+                    <form id="bookReturnForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="returnBookName"><i class="fas fa-book"></i> Book Name *</label>
+                                <input type="text" id="returnBookName" required placeholder="Enter book name">
+                                <div class="error-message" id="returnNameError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="returnAuthor"><i class="fas fa-user-edit"></i> Author Name</label>
+                                <input type="text" id="returnAuthor" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="returnSerial"><i class="fas fa-barcode"></i> Serial Number *</label>
+                                <input type="text" id="returnSerial" required placeholder="Enter serial number">
+                                <div class="error-message" id="serialError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="returnIssueDate"><i class="fas fa-calendar-alt"></i> Issue Date</label>
+                                <input type="date" id="returnIssueDate" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expectedReturnDate"><i class="fas fa-calendar-check"></i> Expected Return Date</label>
+                                <input type="date" id="expectedReturnDate" readonly style="background-color: #f0f0f0;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="actualReturnDate"><i class="fas fa-calendar-day"></i> Actual Return Date *</label>
+                                <input type="date" id="actualReturnDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="returnRemarks"><i class="fas fa-comment"></i> Remarks (Optional)</label>
+                            <textarea id="returnRemarks" rows="3" placeholder="Any remarks about book condition"></textarea>
+                        </div>
+                        
+                        <div class="form-instructions">
+                            <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
+                            <ul>
+                                <li>Book Name and Serial Number are required</li>
+                                <li>Author, Issue Date, and Expected Return Date are auto-populated</li>
+                                <li>Actual Return Date is required</li>
+                                <li>Fine will be calculated if returned after expected date</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Confirm Return
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Fine Payment Form -->
+            <div id="fineSection" class="transaction-section" style="display: none;">
+                <div class="form-section">
+                    <h3><i class="fas fa-money-bill-wave"></i> Pay Fine</h3>
+                    <form id="finePaymentForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fineBookName"><i class="fas fa-book"></i> Book Name</label>
+                                <input type="text" id="fineBookName" readonly style="background-color: #f0f0f0;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="fineAuthor"><i class="fas fa-user-edit"></i> Author Name</label>
+                                <input type="text" id="fineAuthor" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fineSerial"><i class="fas fa-barcode"></i> Serial Number</label>
+                                <input type="text" id="fineSerial" readonly style="background-color: #f0f0f0;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="fineIssueDate"><i class="fas fa-calendar-alt"></i> Issue Date</label>
+                                <input type="date" id="fineIssueDate" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fineExpectedReturn"><i class="fas fa-calendar-check"></i> Expected Return</label>
+                                <input type="date" id="fineExpectedReturn" readonly style="background-color: #f0f0f0;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="fineActualReturn"><i class="fas fa-calendar-day"></i> Actual Return</label>
+                                <input type="date" id="fineActualReturn" readonly style="background-color: #f0f0f0;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fineCalculated"><i class="fas fa-calculator"></i> Fine Calculated</label>
+                                <input type="text" id="fineCalculated" value="₹0" readonly style="background-color: #f0f0f0; font-weight: bold;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-check-circle"></i> Fine Paid</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-option">
+                                        <input type="checkbox" id="finePaid" name="finePaid">
+                                        <label for="finePaid">Mark as Paid</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fineRemarks"><i class="fas fa-comment"></i> Remarks (Optional)</label>
+                            <textarea id="fineRemarks" rows="3" placeholder="Payment details or remarks"></textarea>
+                        </div>
+                        
+                        <div class="form-instructions">
+                            <p><i class="fas fa-info-circle"></i> <strong>Important:</strong></p>
+                            <ul>
+                                <li>All fields are auto-populated except Fine Paid and Remarks</li>
+                                <li>If no fine calculated, press Confirm to complete transaction</li>
+                                <li>For pending fine, checkbox must be selected before confirming</li>
+                                <li>Error message shown if required details missing</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Confirm Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Transaction Status -->
+        <div id="transactionStatus" style="display: none;">
+            <div class="status-card">
+                <i class="fas fa-check-circle fa-3x" style="color: var(--user-color);"></i>
+                <h3>Transaction Completed Successfully</h3>
+                <p id="statusMessage">Your transaction has been processed.</p>
+                <button class="btn btn-primary" onclick="resetTransaction()">
+                    <i class="fas fa-redo"></i> New Transaction
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/transactions.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user info
+            const userName = sessionStorage.getItem('userName') || 'Library User';
+            document.getElementById('userProfile').innerHTML = `
+                <i class="fas fa-user-circle fa-2x"></i>
+                <div>
+                    <strong>${userName}</strong><br>
+                    <small>Library User</small>
+                </div>
+            `;
+            
+            // Get action from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action') || 'search';
+            
+            // Set active tab and show corresponding section
+            setActiveTransaction(action);
+            
+            // Set today's date for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]:not([readonly])');
+            dateInputs.forEach(input => {
+                if (!input.value) {
+                    input.value = today;
+                    input.min = today;
+                }
+            });
+            
+            // Set return date 15 days from today for issue form
+            const returnDate = new Date();
+            returnDate.setDate(returnDate.getDate() + 15);
+            document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
+            
+            // Tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const action = this.dataset.action;
+                    window.location.href = `transactions.html?action=${action}`;
+                });
+            });
+            
+            // Book Search Form Submission
+            document.getElementById('bookSearchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const bookName = document.getElementById('searchBookName').value;
+                const author = document.getElementById('searchAuthor').value;
+                
+                // Validation: At least one field must be filled
+                if (!bookName && !author) {
+                    alert('Please enter either Book Name or Author to search.');
+                    return;
+                }
+                
+                // Simulate search results
+                showSearchResults();
+            });
+            
+            // Book Issue Form Submission
+            document.getElementById('bookIssueForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const bookName = document.getElementById('issueBookName').value;
+                const issueDate = document.getElementById('issueDate').value;
+                const returnDate = document.getElementById('returnDate').value;
+                
+                // Validations
+                if (!bookName) {
+                    document.getElementById('issueNameError').textContent = 'Book Name is required';
+                    document.getElementById('issueNameError').style.display = 'block';
+                    return;
+                }
+                
+                if (new Date(issueDate) < new Date()) {
+                    alert('Issue Date cannot be earlier than today!');
+                    return;
+                }
+                
+                if (new Date(returnDate) < new Date(issueDate)) {
+                    alert('Return Date must be after Issue Date!');
+                    return;
+                }
+                
+                // Success
+                showTransactionStatus(`Book "${bookName}" issued successfully! Due date: ${returnDate}`);
+            });
+            
+            // Book Return Form Submission
+            document.getElementById('bookReturnForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const bookName = document.getElementById('returnBookName').value;
+                const serialNo = document.getElementById('returnSerial').value;
+                const actualReturn = document.getElementById('actualReturnDate').value;
+                
+                // Validations
+                if (!bookName) {
+                    document.getElementById('returnNameError').textContent = 'Book Name is required';
+                    document.getElementById('returnNameError').style.display = 'block';
+                    return;
+                }
+                
+                if (!serialNo) {
+                    document.getElementById('serialError').textContent = 'Serial Number is required';
+                    document.getElementById('serialError').style.display = 'block';
+                    return;
+                }
+                
+                // Calculate fine (example)
+                const expectedDate = document.getElementById('expectedReturnDate').value;
+                let fine = 0;
+                if (new Date(actualReturn) > new Date(expectedDate)) {
+                    const daysLate = Math.ceil((new Date(actualReturn) - new Date(expectedDate)) / (1000 * 60 * 60 * 24));
+                    fine = daysLate * 10; // ₹10 per day
+                }
+                
+                // Store data for fine payment
+                if (fine > 0) {
+                    sessionStorage.setItem('pendingFine', fine);
+                    sessionStorage.setItem('returnBook', JSON.stringify({
+                        name: bookName,
+                        serial: serialNo,
+                        expected: expectedDate,
+                        actual: actualReturn,
+                        fine: fine
+                    }));
+                    
+                    // Redirect to fine payment
+                    alert(`Book returned. Fine calculated: ₹${fine}. Redirecting to payment...`);
+                    window.location.href = 'transactions.html?action=fine';
+                } else {
+                    showTransactionStatus(`Book "${bookName}" returned successfully! No fine applicable.`);
+                }
+            });
+            
+            // Fine Payment Form Submission
+            document.getElementById('finePaymentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const finePaid = document.getElementById('finePaid').checked;
+                const fineAmount = parseInt(document.getElementById('fineCalculated').value.replace('₹', ''));
+                
+                // Validation for pending fine
+                if (fineAmount > 0 && !finePaid) {
+                    alert('Please check "Fine Paid" checkbox to complete the transaction.');
+                    return;
+                }
+                
+                // Success
+                showTransactionStatus(`Fine payment completed successfully! Transaction ID: TXN${Date.now().toString().slice(-6)}`);
+                
+                // Clear session storage
+                sessionStorage.removeItem('pendingFine');
+                sessionStorage.removeItem('returnBook');
+            });
+            
+            // Populate fine form if data exists
+            if (action === 'fine') {
+                const pendingFine = sessionStorage.getItem('pendingFine');
+                const returnBook = JSON.parse(sessionStorage.getItem('returnBook') || '{}');
+                
+                if (returnBook.name) {
+                    document.getElementById('fineBookName').value = returnBook.name;
+                    document.getElementById('fineAuthor').value = 'Author Name'; // Would come from actual data
+                    document.getElementById('fineSerial').value = returnBook.serial;
+                    document.getElementById('fineExpectedReturn').value = returnBook.expected;
+                    document.getElementById('fineActualReturn').value = returnBook.actual;
+                    document.getElementById('fineCalculated').value = `₹${pendingFine || 0}`;
+                    
+                    // Set issue date (15 days before expected return)
+                    const issueDate = new Date(returnBook.expected);
+                    issueDate.setDate(issueDate.getDate() - 15);
+                    document.getElementById('fineIssueDate').value = issueDate.toISOString().split('T')[0];
+                }
+            }
+            
+            // Radio button selection for search results
+            document.addEventListener('change', function(e) {
+                if (e.target.type === 'radio' && e.target.name === 'bookSelect') {
+                    const selectedBook = JSON.parse(e.target.dataset.book);
+                    document.getElementById('issueSelectedBtn').disabled = false;
+                    
+                    // Store selected book for issue form
+                    sessionStorage.setItem('selectedBook', JSON.stringify(selectedBook));
+                }
+            });
+        });
+        
+        // Function to set active transaction
+        function setActiveTransaction(action) {
+            // Update title
+            const titles = {
+                'search': 'Book Availability Search',
+                'issue': 'Issue Book',
+                'return': 'Return Book',
+                'fine': 'Pay Fine'
+            };
+            document.getElementById('transactionTitle').textContent = titles[action] || titles.search;
+            
+            // Show active section
+            document.querySelectorAll('.transaction-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(action + 'Section').style.display = 'block';
+            
+            // Set active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.nav-tab[data-action="${action}"]`).classList.add('active');
+        }
+        
+        // Function to show search results
+        function showSearchResults() {
+            // Sample search results
+            const results = [
+                { name: 'Introduction to Computer Science', author: 'John Smith', serial: 'SCB000001', category: 'Science', available: true },
+                { name: 'Economics for Beginners', author: 'Alice Johnson', serial: 'ECB000001', category: 'Economics', available: true },
+                { name: 'The Great Adventure', author: 'Robert Brown', serial: 'FCB000001', category: 'Fiction', available: false },
+                { name: 'Children\'s World', author: 'Sarah Wilson', serial: 'CHB000001', category: 'Children', available: true },
+                { name: 'Personal Growth', author: 'Michael Davis', serial: 'PDB000001', category: 'Personal Development', available: true }
+            ];
+            
+            let resultsHTML = '';
+            results.forEach((book, index) => {
+                resultsHTML += `
+                    <tr>
+                        <td>
+                            <input type="radio" name="bookSelect" id="book${index}" 
+                                   data-book='${JSON.stringify(book)}'
+                                   ${!book.available ? 'disabled' : ''}>
+                        </td>
+                        <td>${book.name}</td>
+                        <td>${book.author}</td>
+                        <td>${book.serial}</td>
+                        <td>${book.category}</td>
+                        <td>
+                            <span class="${book.available ? 'status-active' : 'status-inactive'}">
+                                ${book.available ? 'Yes' : 'No'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('resultsTable').innerHTML = resultsHTML;
+            document.getElementById('searchResults').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Function to clear search
+        function clearSearch() {
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('bookSearchForm').reset();
+            document.getElementById('issueSelectedBtn').disabled = true;
+        }
+        
+        // Function to proceed to issue
+        function proceedToIssue() {
+            const selectedBook = JSON.parse(sessionStorage.getItem('selectedBook') || '{}');
+            
+            if (selectedBook.name) {
+                // Populate issue form
+                document.getElementById('issueBookName').value = selectedBook.name;
+                document.getElementById('issueAuthor').value = selectedBook.author;
+                document.getElementById('issueSerial').value = selectedBook.serial;
+                
+                // Switch to issue section
+                window.location.href = 'transactions.html?action=issue';
+            }
+        }
+        
+        // Function to show transaction status
+        function showTransactionStatus(message) {
+            document.querySelectorAll('.transaction-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById('transactionStatus').style.display = 'block';
+            document.getElementById('statusMessage').textContent = message;
+        }
+        
+        // Function to reset transaction
+        function resetTransaction() {
+            document.getElementById('transactionStatus').style.display = 'none';
+            document.getElementById('searchSection').style.display = 'block';
+            
+            // Reset all forms
+            document.querySelectorAll('form').forEach(form => form.reset());
+            
+            // Reset search results
+            document.getElementById('searchResults').style.display = 'none';
+            
+            // Go back to search
+            window.location.href = 'transactions.html?action=search';
+        }
+    </script>
+    
+    <style>
+        .transaction-nav {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            overflow-x: auto;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+        }
+        
+        .nav-tab.active {
+            color: var(--user-color);
+            border-bottom-color: var(--user-color);
+            background: #f0fff0;
+        }
+        
+        .nav-tab i {
+            font-size: 1.2rem;
+        }
+        
+        .transaction-section {
+            display: none;
+        }
+        
+        .form-instructions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .form-instructions ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 10px;
+        }
+        
+        .form-instructions li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-instructions li:before {
+            content: '•';
+            color: var(--user-color);
+            font-weight: bold;
+        }
+        
+        .results-section {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-top: 30px;
+        }
+        
+        .results-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .status-card {
+            background: white;
+            padding: 50px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            max-width: 500px;
+            margin: 50px auto;
+        }
+        
+        .status-card i {
+            margin-bottom: 20px;
+        }
+        
+        .status-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .status-card p {
+            color: var(--dark-gray);
+            margin-bottom: 25px;
+        }
+        
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                min-width: auto;
+                flex-direction: row;
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .results-actions {
+                flex-direction: column;
+            }
+            
+            .results-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>
