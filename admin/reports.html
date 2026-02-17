@@ -198,8 +198,10 @@
         </div>
     </main>
     
-    <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
+    <!-- Yeh scripts sabhi pages mein include hone chahiye -->
+<script src="../js/auth.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/validations.js"></script>
     <script>
         console.log("Reports page loaded");
         
@@ -514,52 +516,58 @@
         }
         
         // Helper functions for report data
-        function getBooksReportData() {
-            try {
-                const books = LibraryStorage.getBooks();
-                console.log("Retrieved books for report:", books.length, "books");
-                
-                // Apply filters if any
-                let filteredBooks = [...books];
-                const categoryFilter = document.getElementById('filterCategory')?.value;
-                const statusFilter = document.getElementById('filterStatus')?.value;
-                
-                if (categoryFilter) {
-                    filteredBooks = filteredBooks.filter(book => book.category === categoryFilter);
-                }
-                if (statusFilter) {
-                    filteredBooks = filteredBooks.filter(book => book.status === statusFilter);
-                }
-                
-                const data = filteredBooks.map(book => [
-                    book.serial || 'N/A',
-                    book.name || 'Unnamed Book',
-                    book.author || 'Unknown Author',
-                    book.category || 'Uncategorized',
-                    book.status || 'Available',
-                    `₹${book.cost || '0'}`,
-                    book.procurementDate || book.addedDate || 'N/A'
-                ]);
-                
-                const stats = LibraryStorage.getStats();
-                
-                return {
-                    title: 'Master List of Books',
-                    columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
-                    data: data,
-                    summary: `Total Books: ${stats.totalBooks} | Available: ${stats.availableBooks} | Issued: ${stats.issuedBooks} | Showing: ${filteredBooks.length}`
-                };
-                
-            } catch (error) {
-                console.error("Error getting books report data:", error);
-                return {
-                    title: 'Master List of Books',
-                    columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
-                    data: [],
-                    summary: 'Error loading book data'
-                };
-            }
+        
+        // Get Books Report Data function ko yeh se replace karein:
+function getBooksReportData() {
+    console.log("Loading books report data...");
+    
+    try {
+        const books = LibraryStorage.getBooks();
+        console.log("Retrieved books:", books.length);
+        
+        // Apply filters if any
+        let filteredBooks = [...books];
+        const categoryFilter = document.getElementById('filterCategory')?.value;
+        const statusFilter = document.getElementById('filterStatus')?.value;
+        
+        if (categoryFilter) {
+            filteredBooks = filteredBooks.filter(book => book.category === categoryFilter);
         }
+        if (statusFilter) {
+            filteredBooks = filteredBooks.filter(book => book.status === statusFilter);
+        }
+        
+        console.log("Filtered books:", filteredBooks.length);
+        
+        const data = filteredBooks.map(book => [
+            book.serial || 'N/A',
+            book.name || 'Unnamed Book',
+            book.author || 'Unknown Author',
+            book.category || 'Uncategorized',
+            book.status || 'Available',
+            `₹${book.cost || '0'}`,
+            book.procurementDate || book.addedDate?.split('T')[0] || 'N/A'
+        ]);
+        
+        const stats = LibraryStorage.getStats();
+        
+        return {
+            title: 'Master List of Books',
+            columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
+            data: data,
+            summary: `Total Books: ${stats.totalBooks} | Available: ${stats.availableBooks} | Issued: ${stats.issuedBooks} | Showing: ${filteredBooks.length} items`
+        };
+        
+    } catch (error) {
+        console.error("Error getting books report data:", error);
+        return {
+            title: 'Master List of Books',
+            columns: ['Serial No', 'Name of Book', 'Author Name', 'Category', 'Status', 'Cost', 'Procurement Date'],
+            data: [],
+            summary: 'Error loading book data'
+        };
+    }
+}
         
         function getMoviesReportData() {
             const movies = LibraryStorage.getMovies();
