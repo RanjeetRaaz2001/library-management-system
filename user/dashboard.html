@@ -237,204 +237,145 @@
         </div>
     </main>
     
+    <!-- Yeh scripts sabhi pages mein include hone chahiye -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
-    <script>
-        console.log("User Dashboard loaded");
-        
-        // User's issued books storage
-        const UserIssues = {
-            getIssues() {
-                const userId = sessionStorage.getItem('userId') || 'user';
-                const userIssues = JSON.parse(localStorage.getItem(`userIssues_${userId}`) || '[]');
-                console.log("User issues:", userIssues.length);
-                return userIssues;
-            },
-            
-            addIssue(book) {
-                const userId = sessionStorage.getItem('userId') || 'user';
-                const issues = this.getIssues();
-                
-                const newIssue = {
-                    id: Date.now(),
-                    bookId: book.id,
-                    bookName: book.name,
-                    author: book.author,
-                    serial: book.serial,
-                    issueDate: new Date().toISOString().split('T')[0],
-                    dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                    status: 'Active',
-                    userId: userId
-                };
-                
-                issues.push(newIssue);
-                localStorage.setItem(`userIssues_${userId}`, JSON.stringify(issues));
-                
-                // Update book status in main storage
-                LibraryStorage.updateBook(book.id, { status: 'Issued' });
-                
-                return newIssue;
-            },
-            
-            returnBook(issueId) {
-                const userId = sessionStorage.getItem('userId') || 'user';
-                let issues = this.getIssues();
-                const issueIndex = issues.findIndex(issue => issue.id === issueId);
-                
-                if (issueIndex !== -1) {
-                    const returnedIssue = issues[issueIndex];
-                    returnedIssue.status = 'Returned';
-                    returnedIssue.returnDate = new Date().toISOString().split('T')[0];
-                    
-                    // Update book status in main storage
-                    LibraryStorage.updateBook(returnedIssue.bookId, { status: 'Available' });
-                    
-                    // Move to history
-                    const history = JSON.parse(localStorage.getItem(`userHistory_${userId}`) || '[]');
-                    history.push(returnedIssue);
-                    localStorage.setItem(`userHistory_${userId}`, JSON.stringify(history));
-                    
-                    // Remove from current issues
-                    issues = issues.filter(issue => issue.id !== issueId);
-                    localStorage.setItem(`userIssues_${userId}`, JSON.stringify(issues));
-                    
-                    return returnedIssue;
-                }
-                return null;
-            },
-            
-            getHistory() {
-                const userId = sessionStorage.getItem('userId') || 'user';
-                return JSON.parse(localStorage.getItem(`userHistory_${userId}`) || '[]');
-            }
-        };
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize storage
-            LibraryStorage.init();
-            
-            // Initialize user data
-            initUserData();
-            
-            // Set user info
-            const userName = sessionStorage.getItem('userName') || 'Library User';
-            document.getElementById('userName').textContent = userName;
-            
-            // Populate user profile
-            document.getElementById('userProfile').innerHTML = `
-                <i class="fas fa-user-circle fa-2x"></i>
-                <div>
-                    <strong>${userName}</strong><br>
-                    <small>Library User</small>
-                </div>
-            `;
-            
-            // Load dashboard data
-            loadUserDashboard();
-            
-            // Auto-refresh every 60 seconds
-            setInterval(loadUserDashboard, 60000);
-        });
+    <script src="../js/validations.js"></script>
+    <!-- dashboard.html में सिर्फ <script> tag के अंदर का code replace करें -->
+
+<script>
+    console.log("User Dashboard loaded");
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize storage
+        LibraryStorage.init();
         
         // Initialize user data
-        function initUserData() {
-            const userId = sessionStorage.getItem('userId') || 'user';
+        initUserData();
+        
+        // Set user info
+        const userName = sessionStorage.getItem('userName') || 'Library User';
+        document.getElementById('userName').textContent = userName;
+        
+        // Populate user profile
+        document.getElementById('userProfile').innerHTML = `
+            <i class="fas fa-user-circle fa-2x"></i>
+            <div>
+                <strong>${userName}</strong><br>
+                <small>Library User</small>
+            </div>
+        `;
+        
+        // Load dashboard data
+        loadUserDashboard();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadUserDashboard, 60000);
+    });
+    
+    // Initialize user data
+    function initUserData() {
+        const userId = sessionStorage.getItem('userId') || 'user';
+        
+        // Initialize user stats
+        if (!localStorage.getItem(`userStats_${userId}`)) {
+            const userStats = {
+                booksRead: 0,
+                totalFines: 0,
+                membershipId: 'MEM000123',
+                membershipType: 'Premium (1 Year)',
+                validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                readingLevel: 'Beginner'
+            };
+            localStorage.setItem(`userStats_${userId}`, JSON.stringify(userStats));
+        }
+    }
+    
+    // Load user dashboard data
+    function loadUserDashboard() {
+        console.log("Loading user dashboard data...");
+        
+        // Get data from storage
+        const books = LibraryStorage.getBooks();
+        const memberId = "MEM000123";
+        const userIssues = LibraryStorage.getUserIssues(memberId);
+        const userStats = getUserStats();
+        
+        console.log("Data loaded:", {
+            totalBooks: books.length,
+            availableBooks: books.filter(b => b.status === 'Available').length,
+            userIssues: userIssues.length
+        });
+        
+        // Update stats
+        updateUserStats(userIssues, userStats, books);
+        
+        // Update issued books
+        updateIssuedBooks(userIssues);
+        
+        // Update recently added books (by admin)
+        updateRecentBooks(books);
+        
+        // Update books by category
+        updateCategoryBooks(books);
+        
+        // Update user information
+        updateUserInfo(userStats, books, userIssues.length);
+    }
+    
+    // Update user statistics
+    function updateUserStats(userIssues, userStats, books) {
+        // Calculate days remaining for earliest due book
+        let daysRemaining = 0;
+        if (userIssues.length > 0) {
+            const earliestDue = userIssues.reduce((min, issue) => {
+                const dueDate = new Date(issue.dueDate);
+                return dueDate < min ? dueDate : min;
+            }, new Date(userIssues[0].dueDate));
             
-            // Initialize user issues if not exists
-            if (!localStorage.getItem(`userIssues_${userId}`)) {
-                localStorage.setItem(`userIssues_${userId}`, JSON.stringify([]));
-            }
-            
-            // Initialize user history if not exists
-            if (!localStorage.getItem(`userHistory_${userId}`)) {
-                localStorage.setItem(`userHistory_${userId}`, JSON.stringify([]));
-            }
-            
-            // Initialize user stats
-            if (!localStorage.getItem(`userStats_${userId}`)) {
-                const userStats = {
-                    booksRead: 0,
-                    totalFines: 0,
-                    membershipId: 'MEM' + Date.now().toString().slice(-6),
-                    membershipType: 'Premium (1 Year)',
-                    validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                    readingLevel: 'Beginner'
-                };
-                localStorage.setItem(`userStats_${userId}`, JSON.stringify(userStats));
-            }
+            const today = new Date();
+            daysRemaining = Math.ceil((earliestDue - today) / (1000 * 60 * 60 * 24));
+            daysRemaining = Math.max(0, daysRemaining);
         }
         
-        // Load user dashboard data
-        function loadUserDashboard() {
-            console.log("Loading user dashboard data...");
-            
-            // Get data from storage
-            const books = LibraryStorage.getBooks();
-            const userIssues = UserIssues.getIssues();
-            const userHistory = UserIssues.getHistory();
-            const userStats = getUserStats();
-            
-            console.log("Data loaded:", {
-                totalBooks: books.length,
-                availableBooks: books.filter(b => b.status === 'Available').length,
-                userIssues: userIssues.length,
-                userHistory: userHistory.length
-            });
-            
-            // Update stats
-            updateUserStats(userIssues, userHistory, userStats, books);
-            
-            // Update issued books
-            updateIssuedBooks(userIssues);
-            
-            // Update recently added books (by admin)
-            updateRecentBooks(books);
-            
-            // Update books by category
-            updateCategoryBooks(books);
-            
-            // Update user information
-            updateUserInfo(userStats, books, userHistory.length);
+        // Calculate fines
+        let totalFines = 0;
+        const today = new Date().toISOString().split('T')[0];
+        
+        userIssues.forEach(issue => {
+            if (issue.dueDate < today) {
+                const daysOverdue = Math.ceil(
+                    (new Date(today) - new Date(issue.dueDate)) / 
+                    (1000 * 60 * 60 * 24)
+                );
+                totalFines += daysOverdue * 10;
+            }
+        });
+        
+        // Update DOM
+        document.getElementById('userBooksIssued').textContent = userIssues.length;
+        document.getElementById('daysRemaining').textContent = daysRemaining;
+        document.getElementById('booksRead').textContent = userStats.booksRead || 0;
+        document.getElementById('totalFines').textContent = `₹${totalFines}`;
+        
+        // Update available books count
+        const availableBooks = books.filter(b => b.status === 'Available').length;
+        document.getElementById('availableBooks').textContent = availableBooks;
+    }
+    
+    // Update issued books table
+    function updateIssuedBooks(userIssues) {
+        const issuedBooksContainer = document.getElementById('issuedBooks');
+        const noIssuedBooks = document.getElementById('noIssuedBooks');
+        
+        if (userIssues.length === 0) {
+            if (issuedBooksContainer) issuedBooksContainer.style.display = 'none';
+            if (noIssuedBooks) noIssuedBooks.style.display = 'block';
+            return;
         }
         
-        // Update user statistics
-        function updateUserStats(userIssues, userHistory, userStats, books) {
-            // Calculate days remaining for earliest due book
-            let daysRemaining = 0;
-            if (userIssues.length > 0) {
-                const earliestDue = userIssues.reduce((min, issue) => {
-                    const dueDate = new Date(issue.dueDate);
-                    return dueDate < min ? dueDate : min;
-                }, new Date(userIssues[0].dueDate));
-                
-                const today = new Date();
-                daysRemaining = Math.ceil((earliestDue - today) / (1000 * 60 * 60 * 24));
-                daysRemaining = Math.max(0, daysRemaining);
-            }
-            
-            // Update DOM
-            document.getElementById('userBooksIssued').textContent = userIssues.length;
-            document.getElementById('daysRemaining').textContent = daysRemaining;
-            document.getElementById('booksRead').textContent = userHistory.length;
-            document.getElementById('totalFines').textContent = `₹${userStats.totalFines || 0}`;
-            
-            // Update available books count
-            const availableBooks = books.filter(b => b.status === 'Available').length;
-            document.getElementById('availableBooks').textContent = availableBooks;
-        }
-        
-        // Update issued books table
-        function updateIssuedBooks(userIssues) {
-            const issuedBooksContainer = document.getElementById('issuedBooks');
-            const noIssuedBooks = document.getElementById('noIssuedBooks');
-            
-            if (userIssues.length === 0) {
-                issuedBooksContainer.style.display = 'none';
-                noIssuedBooks.style.display = 'block';
-                return;
-            }
-            
-            noIssuedBooks.style.display = 'none';
+        if (noIssuedBooks) noIssuedBooks.style.display = 'none';
+        if (issuedBooksContainer) {
             issuedBooksContainer.style.display = 'table-row-group';
             
             let html = '';
@@ -448,10 +389,10 @@
                 
                 html += `
                     <tr>
-                        <td>${issue.bookName}</td>
-                        <td>${issue.author}</td>
-                        <td>${issue.issueDate}</td>
-                        <td>${issue.dueDate}</td>
+                        <td>${issue.bookName || 'Unknown Book'}</td>
+                        <td>${issue.bookAuthor || 'Unknown Author'}</td>
+                        <td>${issue.issueDate || 'N/A'}</td>
+                        <td>${issue.dueDate || 'N/A'}</td>
                         <td><span class="${statusClass}">${daysLeft} days</span></td>
                         <td>
                             <button class="btn btn-sm btn-primary" onclick="renewBook(${issue.id}, '${issue.bookName}')">
@@ -467,22 +408,24 @@
             
             issuedBooksContainer.innerHTML = html;
         }
+    }
+    
+    // Update recently added books (by admin)
+    function updateRecentBooks(books) {
+        const recentBooksContainer = document.getElementById('recentBooks');
+        const noBooksMessage = document.getElementById('noBooksMessage');
         
-        // Update recently added books (by admin)
-        function updateRecentBooks(books) {
-            const recentBooksContainer = document.getElementById('recentBooks');
-            const noBooksMessage = document.getElementById('noBooksMessage');
-            
-            // Filter available books
-            const availableBooks = books.filter(book => book.status === 'Available');
-            
-            if (availableBooks.length === 0) {
-                recentBooksContainer.style.display = 'none';
-                noBooksMessage.style.display = 'block';
-                return;
-            }
-            
-            noBooksMessage.style.display = 'none';
+        // Filter available books
+        const availableBooks = books.filter(book => book.status === 'Available');
+        
+        if (availableBooks.length === 0) {
+            if (recentBooksContainer) recentBooksContainer.style.display = 'none';
+            if (noBooksMessage) noBooksMessage.style.display = 'block';
+            return;
+        }
+        
+        if (noBooksMessage) noBooksMessage.style.display = 'none';
+        if (recentBooksContainer) {
             recentBooksContainer.style.display = 'grid';
             
             // Sort by added date (newest first)
@@ -520,7 +463,7 @@
                             <button class="btn btn-sm btn-primary" onclick="viewBookDetails('${book.id}')">
                                 <i class="fas fa-eye"></i> View
                             </button>
-                            <button class="btn btn-sm btn-success" onclick="issueBook('${book.id}', '${book.name}')">
+                            <button class="btn btn-sm btn-success" onclick="issueBookFromDashboard('${book.id}', '${book.name}', '${book.serial}')">
                                 <i class="fas fa-share-square"></i> Issue
                             </button>
                         </div>
@@ -530,213 +473,252 @@
             
             recentBooksContainer.innerHTML = html;
         }
+    }
+    
+    // Update books by category
+    function updateCategoryBooks(books) {
+        const categoryContainer = document.getElementById('categoryBooks');
         
-        // Update books by category
-        function updateCategoryBooks(books) {
-            const categoryContainer = document.getElementById('categoryBooks');
+        if (!categoryContainer) return;
+        
+        // Group books by category
+        const booksByCategory = {};
+        books.forEach(book => {
+            const category = book.category || 'Uncategorized';
+            if (!booksByCategory[category]) {
+                booksByCategory[category] = [];
+            }
+            booksByCategory[category].push(book);
+        });
+        
+        // Sort categories by book count
+        const sortedCategories = Object.entries(booksByCategory)
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 4); // Top 4 categories
+        
+        let html = '';
+        sortedCategories.forEach(([category, categoryBooks]) => {
+            const availableCount = categoryBooks.filter(b => b.status === 'Available').length;
             
-            // Group books by category
-            const booksByCategory = {};
-            books.forEach(book => {
-                const category = book.category || 'Uncategorized';
-                if (!booksByCategory[category]) {
-                    booksByCategory[category] = [];
-                }
-                booksByCategory[category].push(book);
-            });
-            
-            // Sort categories by book count
-            const sortedCategories = Object.entries(booksByCategory)
-                .sort((a, b) => b[1].length - a[1].length)
-                .slice(0, 4); // Top 4 categories
-            
-            let html = '';
-            sortedCategories.forEach(([category, categoryBooks]) => {
-                const availableCount = categoryBooks.filter(b => b.status === 'Available').length;
-                
-                html += `
-                    <div class="category-card">
-                        <div class="category-header">
-                            <h4>${category}</h4>
-                            <span class="book-count">${categoryBooks.length} books</span>
-                        </div>
-                        <div class="category-info">
-                            <p><i class="fas fa-check-circle"></i> ${availableCount} available</p>
-                            <p><i class="fas fa-clock"></i> ${categoryBooks.length - availableCount} issued</p>
-                        </div>
-                        <div class="category-books">
-                            ${categoryBooks.slice(0, 2).map(book => `
-                                <div class="mini-book">
-                                    <i class="fas fa-book"></i>
-                                    <span>${book.name.substring(0, 20)}${book.name.length > 20 ? '...' : ''}</span>
-                                </div>
-                            `).join('')}
-                            ${categoryBooks.length > 2 ? `<div class="more-books">+${categoryBooks.length - 2} more</div>` : ''}
-                        </div>
-                        <a href="reports.html?type=books&category=${encodeURIComponent(category)}" class="btn btn-sm btn-outline">
-                            View All
-                        </a>
+            html += `
+                <div class="category-card">
+                    <div class="category-header">
+                        <h4>${category}</h4>
+                        <span class="book-count">${categoryBooks.length} books</span>
                     </div>
-                `;
-            });
-            
-            categoryContainer.innerHTML = html;
-        }
+                    <div class="category-info">
+                        <p><i class="fas fa-check-circle"></i> ${availableCount} available</p>
+                        <p><i class="fas fa-clock"></i> ${categoryBooks.length - availableCount} issued</p>
+                    </div>
+                    <div class="category-books">
+                        ${categoryBooks.slice(0, 2).map(book => `
+                            <div class="mini-book">
+                                <i class="fas fa-book"></i>
+                                <span>${book.name.substring(0, 20)}${book.name.length > 20 ? '...' : ''}</span>
+                            </div>
+                        `).join('')}
+                        ${categoryBooks.length > 2 ? `<div class="more-books">+${categoryBooks.length - 2} more</div>` : ''}
+                    </div>
+                    <a href="reports.html?type=books&category=${encodeURIComponent(category)}" class="btn btn-sm btn-outline">
+                        View All
+                    </a>
+                </div>
+            `;
+        });
         
-        // Update user information
-        function updateUserInfo(userStats, books, totalRead) {
-            document.getElementById('memberId').textContent = userStats.membershipId;
-            document.getElementById('memberType').textContent = userStats.membershipType;
-            document.getElementById('memberValid').textContent = userStats.validUntil;
-            document.getElementById('totalIssued').textContent = totalRead;
-            document.getElementById('readingLevel').textContent = userStats.readingLevel;
+        categoryContainer.innerHTML = html;
+    }
+    
+    // Update user information
+    function updateUserInfo(userStats, books, totalIssued) {
+        if (document.getElementById('memberId')) {
+            document.getElementById('memberId').textContent = userStats.membershipId || 'MEM000123';
+            document.getElementById('memberType').textContent = userStats.membershipType || 'Premium (1 Year)';
+            document.getElementById('memberValid').textContent = userStats.validUntil || '2024-12-31';
+            document.getElementById('totalIssued').textContent = totalIssued;
+            document.getElementById('readingLevel').textContent = userStats.readingLevel || 'Beginner';
             
             // Calculate reading level based on books read
-            if (totalRead >= 20) {
+            const booksRead = userStats.booksRead || 0;
+            if (booksRead >= 20) {
                 document.getElementById('readingLevel').textContent = 'Expert';
-            } else if (totalRead >= 10) {
+            } else if (booksRead >= 10) {
                 document.getElementById('readingLevel').textContent = 'Intermediate';
             }
         }
+    }
+    
+    // Get user stats
+    function getUserStats() {
+        const userId = sessionStorage.getItem('userId') || 'user';
+        return JSON.parse(localStorage.getItem(`userStats_${userId}`) || '{}');
+    }
+    
+    // Save user stats
+    function saveUserStats(stats) {
+        const userId = sessionStorage.getItem('userId') || 'user';
+        localStorage.setItem(`userStats_${userId}`, JSON.stringify(stats));
+    }
+    
+    // Helper functions
+    function isNewBook(dateString) {
+        if (!dateString) return false;
+        const bookDate = new Date(dateString);
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return bookDate > weekAgo;
+    }
+    
+    // Action functions
+    function viewBookDetails(bookId) {
+        const books = LibraryStorage.getBooks();
+        const book = books.find(b => b.id == bookId);
         
-        // Get user stats
-        function getUserStats() {
-            const userId = sessionStorage.getItem('userId') || 'user';
-            return JSON.parse(localStorage.getItem(`userStats_${userId}`) || '{}');
+        if (book) {
+            const details = `
+                <strong>${book.name}</strong><br>
+                <strong>Author:</strong> ${book.author}<br>
+                <strong>Category:</strong> ${book.category}<br>
+                <strong>Serial:</strong> ${book.serial}<br>
+                <strong>Status:</strong> ${book.status}<br>
+                <strong>Available Copies:</strong> ${book.quantity || 1}<br>
+                <strong>Added:</strong> ${book.addedDate || book.procurementDate || 'N/A'}<br>
+                ${book.description ? `<strong>Description:</strong><br>${book.description}` : ''}
+            `;
+            
+            alert(details);
         }
+    }
+    
+    // **FIXED: Issue book from dashboard - CORRECT VERSION**
+    function issueBookFromDashboard(bookId, bookName, bookSerial) {
+        console.log("Issue function called:", { bookId, bookName, bookSerial });
         
-        // Save user stats
-        function saveUserStats(stats) {
-            const userId = sessionStorage.getItem('userId') || 'user';
-            localStorage.setItem(`userStats_${userId}`, JSON.stringify(stats));
-        }
-        
-        // Helper functions
-        function isNewBook(dateString) {
-            if (!dateString) return false;
-            const bookDate = new Date(dateString);
-            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-            return bookDate > weekAgo;
-        }
-        
-        // Action functions
-        function viewBookDetails(bookId) {
+        if (confirm(`Do you want to issue "${bookName}"?`)) {
             const books = LibraryStorage.getBooks();
             const book = books.find(b => b.id == bookId);
             
-            if (book) {
-                const details = `
-                    <strong>${book.name}</strong><br>
-                    <strong>Author:</strong> ${book.author}<br>
-                    <strong>Category:</strong> ${book.category}<br>
-                    <strong>Serial:</strong> ${book.serial}<br>
-                    <strong>Status:</strong> ${book.status}<br>
-                    <strong>Added:</strong> ${book.addedDate || book.procurementDate}<br>
-                    ${book.description ? `<strong>Description:</strong><br>${book.description}` : ''}
-                `;
+            if (book && book.status === 'Available' && book.quantity > 0) {
+                // Get user information
+                const userName = sessionStorage.getItem('userName') || 'Library User';
+                const memberId = "MEM000123";
                 
-                alert(details);
-            }
-        }
-        
-        function issueBook(bookId, bookName) {
-            if (confirm(`Do you want to issue "${bookName}"?`)) {
-                const books = LibraryStorage.getBooks();
-                const book = books.find(b => b.id == bookId);
+                // Calculate due date (15 days from now)
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 15);
+                const dueDateStr = dueDate.toISOString().split('T')[0];
                 
-                if (book && book.status === 'Available') {
-                    const issue = UserIssues.addIssue(book);
-                    if (issue) {
-                        alert(`Book "${bookName}" issued successfully!\nDue Date: ${issue.dueDate}`);
-                        loadUserDashboard();
-                    }
-                } else {
-                    alert('Sorry, this book is not available for issue.');
-                }
-            }
-        }
-        
-        function renewBook(issueId, bookName) {
-            if (confirm(`Do you want to renew "${bookName}" for 15 more days?`)) {
-                // In real app, this would update the due date
-                alert(`Book "${bookName}" renewed successfully!`);
-                loadUserDashboard();
-            }
-        }
-        
-        function returnBook(issueId, bookName) {
-            if (confirm(`Do you want to return "${bookName}"?`)) {
-                const returnedIssue = UserIssues.returnBook(issueId);
-                if (returnedIssue) {
+                console.log("Using serial number for issue:", bookSerial);
+                
+                // **FIXED: Use LibraryStorage.issueBook with serial number**
+                const issued = LibraryStorage.issueBook(bookSerial, memberId, userName, dueDateStr);
+                
+                if (issued) {
+                    alert(`✅ Book "${bookName}" issued successfully!\n\nDue Date: ${dueDateStr}\nTransaction ID: TXN${Date.now().toString().slice(-6)}`);
+                    
                     // Update user stats
                     const userStats = getUserStats();
                     userStats.booksRead = (userStats.booksRead || 0) + 1;
                     saveUserStats(userStats);
                     
-                    alert(`Book "${bookName}" returned successfully!`);
+                    // Refresh dashboard
                     loadUserDashboard();
+                } else {
+                    alert('Failed to issue book. Please try again.');
                 }
+            } else {
+                alert('Sorry, this book is not available for issue.');
             }
         }
-        
-        function refreshBooks() {
-            console.log("Refreshing books...");
+    }
+    
+    function renewBook(issueId, bookName) {
+        if (confirm(`Do you want to renew "${bookName}" for 15 more days?`)) {
+            // In real app, this would update the due date
+            alert(`Book "${bookName}" renewed successfully!`);
             loadUserDashboard();
-            
-            // Show notification
-            showNotification('Books list refreshed!', 'success');
         }
-        
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            `;
+    }
+    
+    function returnBook(issueId, bookName) {
+        if (confirm(`Do you want to return "${bookName}"?`)) {
+            const today = new Date().toISOString().split('T')[0];
             
-            notification.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: ${type === 'success' ? '#4caf50' : '#2196f3'};
-                color: white;
-                padding: 12px 20px;
-                border-radius: 5px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                animation: slideUp 0.3s ease;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideDown 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+            // Return the book using LibraryStorage
+            const returned = LibraryStorage.returnBook(issueId, today);
+            if (returned) {
+                alert(`Book "${bookName}" returned successfully!`);
+                
+                // Update user stats
+                const userStats = getUserStats();
+                userStats.booksRead = (userStats.booksRead || 0) + 1;
+                saveUserStats(userStats);
+                
+                // Refresh dashboard
+                loadUserDashboard();
+            } else {
+                alert('Failed to return book. Please try again.');
+            }
         }
+    }
+    
+    function refreshBooks() {
+        console.log("Refreshing books...");
+        loadUserDashboard();
         
-        // Add animation styles
-        const animationStyles = document.createElement('style');
-        animationStyles.textContent = `
-            @keyframes slideUp {
-                from { transform: translateY(100%); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-            }
-            @keyframes slideDown {
-                from { transform: translateY(0); opacity: 1; }
-                to { transform: translateY(100%); opacity: 0; }
-            }
-            .text-muted {
-                color: #6c757d;
-                font-size: 12px;
-            }
+        // Show notification
+        showNotification('Books list refreshed!', 'success');
+    }
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
         `;
-        document.head.appendChild(animationStyles);
-    </script>
+        
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#4caf50' : '#2196f3'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideUp 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideDown 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add animation styles
+    const animationStyles = document.createElement('style');
+    animationStyles.textContent = `
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+        .text-muted {
+            color: #6c757d;
+            font-size: 12px;
+        }
+    `;
+    document.head.appendChild(animationStyles);
+</script>
     
     <style>
         .books-grid {
