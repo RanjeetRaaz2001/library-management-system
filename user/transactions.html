@@ -186,14 +186,15 @@
                             
                             <div class="form-group">
                                 <label for="issueAuthor"><i class="fas fa-user-edit"></i> Author Name</label>
-                                <input type="text" id="issueAuthor" readonly style="background-color: #f0f0f0;">
+                                <input type="text" id="issueAuthor" placeholder="Author name will auto-fill">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="issueSerial"><i class="fas fa-barcode"></i> Serial Number</label>
-                                <input type="text" id="issueSerial" readonly style="background-color: #f0f0f0;">
+                                <label for="issueSerial"><i class="fas fa-barcode"></i> Serial Number *</label>
+                                <input type="text" id="issueSerial" required placeholder="Enter book serial number">
+                                <div class="error-message" id="serialError"></div>
                             </div>
                             
                             <div class="form-group">
@@ -220,18 +221,19 @@
                         </div>
                         
                         <div class="form-instructions">
-                            <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
-                            <ul>
-                                <li>Book Name is required</li>
-                                <li>Author name is auto-populated and non-editable</li>
-                                <li>Issue Date cannot be earlier than today</li>
-                                <li>Return Date defaults to 15 days ahead, can be edited earlier</li>
-                                <li>Remarks are non-mandatory</li>
-                            </ul>
+                            <p><i class="fas fa-info-circle"></i> <strong>How to Issue a Book:</strong></p>
+                            <ol>
+                                <li>First search books in "Book Search" tab</li>
+                                <li>Select a book from search results</li>
+                                <li>Click "Issue Selected Book" button</li>
+                                <li>Form will auto-fill with book details</li>
+                                <li>OR manually enter Book Name and Serial Number</li>
+                                <li>Click "Confirm Issue" to complete</li>
+                            </ol>
                         </div>
                         
                         <div class="form-buttons">
-                            <button type="reset" class="btn btn-secondary">
+                            <button type="reset" class="btn btn-secondary" onclick="resetIssueForm()">
                                 <i class="fas fa-redo"></i> Reset
                             </button>
                             <button type="submit" class="btn btn-primary">
@@ -256,7 +258,7 @@
                             
                             <div class="form-group">
                                 <label for="returnAuthor"><i class="fas fa-user-edit"></i> Author Name</label>
-                                <input type="text" id="returnAuthor" readonly style="background-color: #f0f0f0;">
+                                <input type="text" id="returnAuthor" placeholder="Enter author name">
                             </div>
                         </div>
                         
@@ -269,14 +271,14 @@
                             
                             <div class="form-group">
                                 <label for="returnIssueDate"><i class="fas fa-calendar-alt"></i> Issue Date</label>
-                                <input type="date" id="returnIssueDate" readonly style="background-color: #f0f0f0;">
+                                <input type="date" id="returnIssueDate">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="expectedReturnDate"><i class="fas fa-calendar-check"></i> Expected Return Date</label>
-                                <input type="date" id="expectedReturnDate" readonly style="background-color: #f0f0f0;">
+                                <input type="date" id="expectedReturnDate">
                             </div>
                             
                             <div class="form-group">
@@ -294,7 +296,6 @@
                             <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
                             <ul>
                                 <li>Book Name and Serial Number are required</li>
-                                <li>Author, Issue Date, and Expected Return Date are auto-populated</li>
                                 <li>Actual Return Date is required</li>
                                 <li>Fine will be calculated if returned after expected date</li>
                             </ul>
@@ -411,9 +412,17 @@
         </div>
     </main>
     
+    <!-- Yeh scripts sabhi pages mein include hone chahiye -->
     <script src="../js/auth.js"></script>
-    <script src="../js/transactions.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/validations.js"></script>
+    
     <script>
+        console.log("=== TRANSACTIONS PAGE LOADED ===");
+        
+        let selectedBookForIssue = null;
+        const today = new Date().toISOString().split('T')[0];
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Set user info
             const userName = sessionStorage.getItem('userName') || 'Library User';
@@ -432,8 +441,26 @@
             // Set active tab and show corresponding section
             setActiveTransaction(action);
             
-            // Set today's date for date inputs
-            const today = new Date().toISOString().split('T')[0];
+            // Set default dates
+            setupDefaultDates();
+            
+            // Tab navigation
+            setupTabNavigation();
+            
+            // Form submissions
+            setupFormSubmissions();
+            
+            // Check for selected book from search
+            checkForSelectedBook(action);
+            
+            // Check for fine data
+            if (action === 'fine') {
+                populateFineForm();
+            }
+        });
+        
+        function setupDefaultDates() {
+            // Set today's date for all date inputs
             const dateInputs = document.querySelectorAll('input[type="date"]:not([readonly])');
             dateInputs.forEach(input => {
                 if (!input.value) {
@@ -442,12 +469,18 @@
                 }
             });
             
-            // Set return date 15 days from today for issue form
+            // Set return date 15 days from today
             const returnDate = new Date();
             returnDate.setDate(returnDate.getDate() + 15);
-            document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
+            const returnDateStr = returnDate.toISOString().split('T')[0];
+            document.getElementById('returnDate').value = returnDateStr;
+            document.getElementById('returnDate').min = today;
             
-            // Tab navigation
+            // Set actual return date to today
+            document.getElementById('actualReturnDate').value = today;
+        }
+        
+        function setupTabNavigation() {
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -455,155 +488,43 @@
                     window.location.href = `transactions.html?action=${action}`;
                 });
             });
-            
-            // Book Search Form Submission
+        }
+        
+        function setupFormSubmissions() {
+            // Book Search Form
             document.getElementById('bookSearchForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const bookName = document.getElementById('searchBookName').value;
-                const author = document.getElementById('searchAuthor').value;
-                
-                // Validation: At least one field must be filled
-                if (!bookName && !author) {
-                    alert('Please enter either Book Name or Author to search.');
-                    return;
-                }
-                
-                // Simulate search results
-                showSearchResults();
+                performBookSearch();
             });
             
-            // Book Issue Form Submission
+            // Book Issue Form
             document.getElementById('bookIssueForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const bookName = document.getElementById('issueBookName').value;
-                const issueDate = document.getElementById('issueDate').value;
-                const returnDate = document.getElementById('returnDate').value;
-                
-                // Validations
-                if (!bookName) {
-                    document.getElementById('issueNameError').textContent = 'Book Name is required';
-                    document.getElementById('issueNameError').style.display = 'block';
-                    return;
-                }
-                
-                if (new Date(issueDate) < new Date()) {
-                    alert('Issue Date cannot be earlier than today!');
-                    return;
-                }
-                
-                if (new Date(returnDate) < new Date(issueDate)) {
-                    alert('Return Date must be after Issue Date!');
-                    return;
-                }
-                
-                // Success
-                showTransactionStatus(`Book "${bookName}" issued successfully! Due date: ${returnDate}`);
+                submitIssueForm();
             });
             
-            // Book Return Form Submission
+            // Book Return Form
             document.getElementById('bookReturnForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const bookName = document.getElementById('returnBookName').value;
-                const serialNo = document.getElementById('returnSerial').value;
-                const actualReturn = document.getElementById('actualReturnDate').value;
-                
-                // Validations
-                if (!bookName) {
-                    document.getElementById('returnNameError').textContent = 'Book Name is required';
-                    document.getElementById('returnNameError').style.display = 'block';
-                    return;
-                }
-                
-                if (!serialNo) {
-                    document.getElementById('serialError').textContent = 'Serial Number is required';
-                    document.getElementById('serialError').style.display = 'block';
-                    return;
-                }
-                
-                // Calculate fine (example)
-                const expectedDate = document.getElementById('expectedReturnDate').value;
-                let fine = 0;
-                if (new Date(actualReturn) > new Date(expectedDate)) {
-                    const daysLate = Math.ceil((new Date(actualReturn) - new Date(expectedDate)) / (1000 * 60 * 60 * 24));
-                    fine = daysLate * 10; // ₹10 per day
-                }
-                
-                // Store data for fine payment
-                if (fine > 0) {
-                    sessionStorage.setItem('pendingFine', fine);
-                    sessionStorage.setItem('returnBook', JSON.stringify({
-                        name: bookName,
-                        serial: serialNo,
-                        expected: expectedDate,
-                        actual: actualReturn,
-                        fine: fine
-                    }));
-                    
-                    // Redirect to fine payment
-                    alert(`Book returned. Fine calculated: ₹${fine}. Redirecting to payment...`);
-                    window.location.href = 'transactions.html?action=fine';
-                } else {
-                    showTransactionStatus(`Book "${bookName}" returned successfully! No fine applicable.`);
-                }
+                submitReturnForm();
             });
             
-            // Fine Payment Form Submission
+            // Fine Payment Form
             document.getElementById('finePaymentForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const finePaid = document.getElementById('finePaid').checked;
-                const fineAmount = parseInt(document.getElementById('fineCalculated').value.replace('₹', ''));
-                
-                // Validation for pending fine
-                if (fineAmount > 0 && !finePaid) {
-                    alert('Please check "Fine Paid" checkbox to complete the transaction.');
-                    return;
-                }
-                
-                // Success
-                showTransactionStatus(`Fine payment completed successfully! Transaction ID: TXN${Date.now().toString().slice(-6)}`);
-                
-                // Clear session storage
-                sessionStorage.removeItem('pendingFine');
-                sessionStorage.removeItem('returnBook');
+                submitFinePayment();
             });
-            
-            // Populate fine form if data exists
-            if (action === 'fine') {
-                const pendingFine = sessionStorage.getItem('pendingFine');
-                const returnBook = JSON.parse(sessionStorage.getItem('returnBook') || '{}');
-                
-                if (returnBook.name) {
-                    document.getElementById('fineBookName').value = returnBook.name;
-                    document.getElementById('fineAuthor').value = 'Author Name'; // Would come from actual data
-                    document.getElementById('fineSerial').value = returnBook.serial;
-                    document.getElementById('fineExpectedReturn').value = returnBook.expected;
-                    document.getElementById('fineActualReturn').value = returnBook.actual;
-                    document.getElementById('fineCalculated').value = `₹${pendingFine || 0}`;
-                    
-                    // Set issue date (15 days before expected return)
-                    const issueDate = new Date(returnBook.expected);
-                    issueDate.setDate(issueDate.getDate() - 15);
-                    document.getElementById('fineIssueDate').value = issueDate.toISOString().split('T')[0];
-                }
-            }
             
             // Radio button selection for search results
             document.addEventListener('change', function(e) {
                 if (e.target.type === 'radio' && e.target.name === 'bookSelect') {
-                    const selectedBook = JSON.parse(e.target.dataset.book);
+                    selectedBookForIssue = JSON.parse(e.target.dataset.book);
                     document.getElementById('issueSelectedBtn').disabled = false;
-                    
-                    // Store selected book for issue form
-                    sessionStorage.setItem('selectedBook', JSON.stringify(selectedBook));
+                    console.log("Book selected:", selectedBookForIssue);
                 }
             });
-        });
+        }
         
-        // Function to set active transaction
         function setActiveTransaction(action) {
             // Update title
             const titles = {
@@ -627,90 +548,332 @@
             document.querySelector(`.nav-tab[data-action="${action}"]`).classList.add('active');
         }
         
-        // Function to show search results
-        function showSearchResults() {
-            // Sample search results
-            const results = [
-                { name: 'Introduction to Computer Science', author: 'John Smith', serial: 'SCB000001', category: 'Science', available: true },
-                { name: 'Economics for Beginners', author: 'Alice Johnson', serial: 'ECB000001', category: 'Economics', available: true },
-                { name: 'The Great Adventure', author: 'Robert Brown', serial: 'FCB000001', category: 'Fiction', available: false },
-                { name: 'Children\'s World', author: 'Sarah Wilson', serial: 'CHB000001', category: 'Children', available: true },
-                { name: 'Personal Growth', author: 'Michael Davis', serial: 'PDB000001', category: 'Personal Development', available: true }
-            ];
+        function performBookSearch() {
+            const bookName = document.getElementById('searchBookName').value.trim();
+            const author = document.getElementById('searchAuthor').value.trim();
+            const category = document.getElementById('searchCategory').value;
             
-            let resultsHTML = '';
-            results.forEach((book, index) => {
-                resultsHTML += `
+            if (!bookName && !author) {
+                alert('Please enter either Book Name or Author to search.');
+                return;
+            }
+            
+            // Get real books from LibraryStorage
+            let books = LibraryStorage.getAvailableBooks();
+            
+            // Filter by search criteria
+            if (bookName) {
+                books = books.filter(book => 
+                    book.name.toLowerCase().includes(bookName.toLowerCase())
+                );
+            }
+            
+            if (author) {
+                books = books.filter(book => 
+                    book.author.toLowerCase().includes(author.toLowerCase())
+                );
+            }
+            
+            if (category) {
+                books = books.filter(book => book.category === category);
+            }
+            
+            displaySearchResults(books);
+        }
+        
+        function displaySearchResults(books) {
+            const resultsTable = document.getElementById('resultsTable');
+            
+            if (books.length === 0) {
+                resultsTable.innerHTML = `
                     <tr>
-                        <td>
-                            <input type="radio" name="bookSelect" id="book${index}" 
-                                   data-book='${JSON.stringify(book)}'
-                                   ${!book.available ? 'disabled' : ''}>
-                        </td>
-                        <td>${book.name}</td>
-                        <td>${book.author}</td>
-                        <td>${book.serial}</td>
-                        <td>${book.category}</td>
-                        <td>
-                            <span class="${book.available ? 'status-active' : 'status-inactive'}">
-                                ${book.available ? 'Yes' : 'No'}
-                            </span>
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-search fa-2x" style="color: #ddd;"></i>
+                            <p>No books found matching your search</p>
                         </td>
                     </tr>
                 `;
-            });
+            } else {
+                let resultsHTML = '';
+                books.forEach((book, index) => {
+                    resultsHTML += `
+                        <tr>
+                            <td>
+                                <input type="radio" name="bookSelect" id="book${index}" 
+                                       data-book='${JSON.stringify(book)}'>
+                            </td>
+                            <td>${book.name}</td>
+                            <td>${book.author}</td>
+                            <td>${book.serial}</td>
+                            <td>${book.category}</td>
+                            <td>
+                                <span class="status-active">Yes (${book.quantity} copies)</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                resultsTable.innerHTML = resultsHTML;
+            }
             
-            document.getElementById('resultsTable').innerHTML = resultsHTML;
             document.getElementById('searchResults').style.display = 'block';
-            
-            // Scroll to results
             document.getElementById('searchResults').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // Function to clear search
+        function checkForSelectedBook(action) {
+            // Check if we have a selected book stored in session
+            const storedBook = sessionStorage.getItem('selectedBookForIssue');
+            if (storedBook && action === 'issue') {
+                selectedBookForIssue = JSON.parse(storedBook);
+                populateIssueForm(selectedBookForIssue);
+                sessionStorage.removeItem('selectedBookForIssue');
+            }
+        }
+        
+        function populateIssueForm(book) {
+            if (!book) return;
+            
+            document.getElementById('issueBookName').value = book.name || '';
+            document.getElementById('issueAuthor').value = book.author || '';
+            document.getElementById('issueSerial').value = book.serial || '';
+            
+            // Set focus to issue date
+            document.getElementById('issueDate').focus();
+        }
+        
+        function submitIssueForm() {
+            console.log("Submitting issue form...");
+            
+            // Get form values
+            const bookName = document.getElementById('issueBookName').value.trim();
+            const author = document.getElementById('issueAuthor').value.trim();
+            const serial = document.getElementById('issueSerial').value.trim();
+            const issueDate = document.getElementById('issueDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+            const memberId = document.getElementById('memberId').value;
+            const remarks = document.getElementById('issueRemarks').value.trim();
+            
+            // Basic validations
+            if (!bookName) {
+                alert('Book Name is required!');
+                document.getElementById('issueBookName').focus();
+                return;
+            }
+            
+            if (!serial) {
+                alert('Serial Number is required!');
+                document.getElementById('issueSerial').focus();
+                return;
+            }
+            
+            if (!issueDate) {
+                alert('Issue Date is required!');
+                return;
+            }
+            
+            if (!returnDate) {
+                alert('Return Date is required!');
+                return;
+            }
+            
+            // Date validations
+            if (new Date(issueDate) < new Date(today)) {
+                alert('Issue Date cannot be earlier than today!');
+                return;
+            }
+            
+            if (new Date(returnDate) <= new Date(issueDate)) {
+                alert('Return Date must be after Issue Date!');
+                return;
+            }
+            
+            // Get user information
+            const userName = sessionStorage.getItem('userName') || 'Library User';
+            
+            // Check if book exists and is available
+            const books = LibraryStorage.getBooks();
+            const book = books.find(b => b.serial === serial);
+            
+            if (!book) {
+                alert('Book not found with serial number: ' + serial);
+                return;
+            }
+            
+            if (book.status !== 'Available') {
+                alert(`Book "${book.name}" is not available. Current status: ${book.status}`);
+                return;
+            }
+            
+            if (book.quantity <= 0) {
+                alert(`No copies available for "${book.name}"`);
+                return;
+            }
+            
+            // Issue the book using LibraryStorage
+            const issued = LibraryStorage.issueBook(serial, memberId, userName, returnDate, remarks);
+            
+            if (issued) {
+                showSuccessMessage(`✅ Book "${bookName}" issued successfully!\n\nIssued to: ${userName}\nDue Date: ${returnDate}\nTransaction ID: TXN${Date.now().toString().slice(-6)}`);
+                
+                // Reset form
+                resetIssueForm();
+                
+                // Redirect to my issues page
+                setTimeout(() => {
+                    window.location.href = 'reports.html?type=myissues';
+                }, 3000);
+                
+            } else {
+                alert('Failed to issue book. Please try again.');
+            }
+        }
+        
+        function submitReturnForm() {
+            const bookName = document.getElementById('returnBookName').value.trim();
+            const serialNo = document.getElementById('returnSerial').value.trim();
+            const actualReturn = document.getElementById('actualReturnDate').value;
+            const remarks = document.getElementById('returnRemarks').value.trim();
+            
+            // Validations
+            if (!bookName || !serialNo) {
+                alert('Book Name and Serial Number are required!');
+                return;
+            }
+            
+            if (!actualReturn) {
+                alert('Actual Return Date is required!');
+                return;
+            }
+            
+            // Find the active issue for this book
+            const issues = LibraryStorage.getIssues();
+            const activeIssue = issues.find(issue => 
+                issue.bookSerial === serialNo && 
+                issue.status === 'Active'
+            );
+            
+            if (!activeIssue) {
+                alert('No active issue found for this book!');
+                return;
+            }
+            
+            // Return the book
+            const returned = LibraryStorage.returnBook(activeIssue.id, actualReturn, remarks);
+            
+            if (returned) {
+                if (returned.fineAmount > 0) {
+                    // Store fine data
+                    sessionStorage.setItem('pendingFine', returned.fineAmount);
+                    sessionStorage.setItem('returnBook', JSON.stringify({
+                        name: bookName,
+                        serial: serialNo,
+                        issueDate: activeIssue.issueDate,
+                        expected: activeIssue.dueDate,
+                        actual: actualReturn,
+                        fine: returned.fineAmount
+                    }));
+                    
+                    // Redirect to fine payment
+                    alert(`Book returned. Fine calculated: ₹${returned.fineAmount}. Redirecting to payment...`);
+                    setTimeout(() => {
+                        window.location.href = 'transactions.html?action=fine';
+                    }, 1500);
+                } else {
+                    showSuccessMessage(`Book "${bookName}" returned successfully! No fine applicable.`);
+                    
+                    // Reset form after delay
+                    setTimeout(() => {
+                        document.getElementById('bookReturnForm').reset();
+                        document.getElementById('actualReturnDate').value = today;
+                    }, 2000);
+                }
+            } else {
+                alert('Failed to return book. Please try again.');
+            }
+        }
+        
+        function populateFineForm() {
+            const pendingFine = sessionStorage.getItem('pendingFine') || 0;
+            const returnBook = JSON.parse(sessionStorage.getItem('returnBook') || '{}');
+            
+            if (returnBook.name) {
+                document.getElementById('fineBookName').value = returnBook.name;
+                document.getElementById('fineAuthor').value = 'Author Name';
+                document.getElementById('fineSerial').value = returnBook.serial;
+                document.getElementById('fineExpectedReturn').value = returnBook.expected;
+                document.getElementById('fineActualReturn').value = returnBook.actual;
+                document.getElementById('fineCalculated').value = `₹${pendingFine || 0}`;
+                
+                // Set issue date
+                const issueDate = new Date(returnBook.expected);
+                issueDate.setDate(issueDate.getDate() - 15);
+                document.getElementById('fineIssueDate').value = issueDate.toISOString().split('T')[0];
+            }
+        }
+        
+        function submitFinePayment() {
+            const finePaid = document.getElementById('finePaid').checked;
+            const fineAmount = parseInt(document.getElementById('fineCalculated').value.replace('₹', '') || 0);
+            
+            // Validation for pending fine
+            if (fineAmount > 0 && !finePaid) {
+                alert('Please check "Fine Paid" checkbox to complete the transaction.');
+                return;
+            }
+            
+            // Success
+            showSuccessMessage(`Fine payment completed successfully! Transaction ID: TXN${Date.now().toString().slice(-6)}`);
+            
+            // Clear session storage
+            sessionStorage.removeItem('pendingFine');
+            sessionStorage.removeItem('returnBook');
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        }
+        
+        function proceedToIssue() {
+            if (!selectedBookForIssue) {
+                alert('Please select a book first.');
+                return;
+            }
+            
+            // Store selected book in session for the issue page
+            sessionStorage.setItem('selectedBookForIssue', JSON.stringify(selectedBookForIssue));
+            
+            // Switch to issue section
+            window.location.href = 'transactions.html?action=issue';
+        }
+        
         function clearSearch() {
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('bookSearchForm').reset();
             document.getElementById('issueSelectedBtn').disabled = true;
+            selectedBookForIssue = null;
         }
         
-        // Function to proceed to issue
-        function proceedToIssue() {
-            const selectedBook = JSON.parse(sessionStorage.getItem('selectedBook') || '{}');
-            
-            if (selectedBook.name) {
-                // Populate issue form
-                document.getElementById('issueBookName').value = selectedBook.name;
-                document.getElementById('issueAuthor').value = selectedBook.author;
-                document.getElementById('issueSerial').value = selectedBook.serial;
-                
-                // Switch to issue section
-                window.location.href = 'transactions.html?action=issue';
-            }
+        function resetIssueForm() {
+            document.getElementById('bookIssueForm').reset();
+            setupDefaultDates();
+            document.getElementById('memberId').value = "MEM000123";
+            selectedBookForIssue = null;
         }
         
-        // Function to show transaction status
-        function showTransactionStatus(message) {
+        function showSuccessMessage(message) {
             document.querySelectorAll('.transaction-section').forEach(section => {
                 section.style.display = 'none';
             });
+            
             document.getElementById('transactionStatus').style.display = 'block';
             document.getElementById('statusMessage').textContent = message;
         }
         
-        // Function to reset transaction
         function resetTransaction() {
             document.getElementById('transactionStatus').style.display = 'none';
-            document.getElementById('searchSection').style.display = 'block';
-            
-            // Reset all forms
-            document.querySelectorAll('form').forEach(form => form.reset());
-            
-            // Reset search results
-            document.getElementById('searchResults').style.display = 'none';
-            
-            // Go back to search
-            window.location.href = 'transactions.html?action=search';
+            setActiveTransaction('search');
+            clearSearch();
         }
     </script>
     
@@ -770,9 +933,10 @@
             font-size: 14px;
         }
         
+        .form-instructions ol,
         .form-instructions ul {
             list-style: none;
-            padding-left: 0;
+            padding-left: 20px;
             margin-top: 10px;
         }
         
@@ -784,7 +948,14 @@
             gap: 8px;
         }
         
-        .form-instructions li:before {
+        .form-instructions ol li:before {
+            content: counter(item) ". ";
+            counter-increment: item;
+            color: var(--user-color);
+            font-weight: bold;
+        }
+        
+        .form-instructions ul li:before {
             content: '•';
             color: var(--user-color);
             font-weight: bold;
@@ -827,6 +998,7 @@
         .status-card p {
             color: var(--dark-gray);
             margin-bottom: 25px;
+            white-space: pre-line;
         }
         
         .checkbox-group {
@@ -837,6 +1009,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -857,6 +1036,11 @@
             
             .results-actions .btn {
                 width: 100%;
+            }
+            
+            .status-card {
+                padding: 30px;
+                margin: 30px auto;
             }
         }
     </style>
