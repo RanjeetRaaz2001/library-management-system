@@ -149,109 +149,328 @@
         </div>
     </main>
     
-    <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
-    <script>
-       // Update loadUserReport function in user/reports.html
-function loadUserReport(type) {
-    const reportContent = document.querySelector('.report-selection');
-    const reportControls = document.getElementById('reportControls');
-    const reportTitle = document.getElementById('reportTitle');
-    const tableContainer = document.getElementById('reportTableContainer');
+    <!-- Yeh scripts sabhi pages mein include hone chahiye -->
+<script src="../js/auth.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/validations.js"></script>
+
+<!-- reports.html में <script> tag के अंदर का code replace करें -->
+
+<script>
+    console.log("User Reports page loaded");
     
-    // Show controls and hide selection
-    reportControls.style.display = 'block';
-    reportContent.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set user info
+        const userName = sessionStorage.getItem('userName') || 'Library User';
+        const userProfile = document.getElementById('userProfile');
+        if (userProfile) {
+            userProfile.innerHTML = `
+                <i class="fas fa-user-circle fa-2x"></i>
+                <div>
+                    <strong>${userName}</strong><br>
+                    <small>Library User</small>
+                </div>
+            `;
+        }
+        
+        // Get report type from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportType = urlParams.get('type') || 'books';
+        
+        console.log("Loading report type:", reportType);
+        
+        // Highlight active report type
+        document.querySelectorAll('.report-type-card').forEach(card => {
+            if (card.dataset.type === reportType) {
+                card.style.border = '2px solid var(--user-color)';
+                card.style.background = '#f0fff0';
+            }
+        });
+        
+        // Update report counts
+        updateReportCounts();
+        
+        // Load report data
+        loadUserReport(reportType);
+        
+        // Event listeners for report type selection
+        document.querySelectorAll('.report-type-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                console.log("Switching to report:", type);
+                window.location.href = `reports.html?type=${type}`;
+            });
+        });
+        
+        // Print button
+        const printBtn = document.querySelector('.print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+        }
+        
+        // Search button
+        const searchBtn = document.querySelector('.search-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function() {
+                const searchBox = document.getElementById('searchBox');
+                searchBox.style.display = searchBox.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+        
+        // Search functionality
+        const performSearch = document.getElementById('performSearch');
+        if (performSearch) {
+            performSearch.addEventListener('click', function() {
+                const searchTerm = document.getElementById('reportSearch').value.toLowerCase();
+                const table = document.querySelector('.data-table tbody');
+                const rows = table.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+    });
     
-    let reportData;
-    
-    switch(type) {
-        case 'books':
-            reportData = getUserBooksData();
-            break;
-        case 'movies':
-            reportData = getUserMoviesData();
-            break;
-        case 'myissues':
-            reportData = getMyIssuesData();
-            break;
-        case 'myfines':
-            reportData = getMyFinesData();
-            break;
-        default:
-            reportData = getUserBooksData();
+    // Update report counts
+    function updateReportCounts() {
+        try {
+            const books = LibraryStorage.getAvailableBooks();
+            const movies = LibraryStorage.getMovies();
+            const memberId = "MEM000123"; // Default member ID for user
+            
+            // Get user's active issues
+            const userIssues = LibraryStorage.getUserIssues(memberId);
+            
+            // Get all elements
+            const booksCountElement = document.querySelector('[data-type="books"] .badge');
+            const moviesCountElement = document.querySelector('[data-type="movies"] .badge');
+            const issuesCountElement = document.querySelector('[data-type="myissues"] .badge');
+            const finesCountElement = document.querySelector('[data-type="myfines"] .badge');
+            
+            // Update counts
+            if (booksCountElement) {
+                booksCountElement.textContent = books.length + ' items';
+                booksCountElement.className = 'badge badge-primary';
+            }
+            
+            if (moviesCountElement) {
+                moviesCountElement.textContent = movies.length + ' items';
+                moviesCountElement.className = 'badge badge-primary';
+            }
+            
+            if (issuesCountElement) {
+                issuesCountElement.textContent = userIssues.length + ' active';
+                issuesCountElement.className = 'badge badge-warning';
+            }
+            
+            // Calculate fines
+            let totalFines = 0;
+            const today = new Date().toISOString().split('T')[0];
+            
+            userIssues.forEach(issue => {
+                if (issue.dueDate < today) {
+                    const daysOverdue = Math.ceil(
+                        (new Date(today) - new Date(issue.dueDate)) / 
+                        (1000 * 60 * 60 * 24)
+                    );
+                    totalFines += daysOverdue * 10;
+                }
+            });
+            
+            if (finesCountElement) {
+                if (totalFines > 0) {
+                    finesCountElement.textContent = '₹' + totalFines;
+                    finesCountElement.className = 'badge badge-danger';
+                } else {
+                    finesCountElement.textContent = 'All paid';
+                    finesCountElement.className = 'badge badge-success';
+                }
+            }
+            
+        } catch (error) {
+            console.error("Error updating counts:", error);
+        }
     }
     
-    // Set report title
-    reportTitle.textContent = reportData.title;
-    
-    // Generate table HTML
-    let tableHTML = `
-        <table class="data-table">
-            <thead>
-                <tr>
-    `;
-    
-    reportData.columns.forEach(column => {
-        tableHTML += `<th>${column}</th>`;
-    });
-    
-    tableHTML += `</tr></thead><tbody>`;
-    
-    reportData.data.forEach(row => {
-        tableHTML += `<tr>`;
-        row.forEach(cell => {
-            tableHTML += `<td>${cell}</td>`;
+    // Load user report function
+    function loadUserReport(type) {
+        const reportContent = document.querySelector('.report-selection');
+        const reportControls = document.getElementById('reportControls');
+        const reportTitle = document.getElementById('reportTitle');
+        const tableContainer = document.getElementById('reportTableContainer');
+        
+        // Show controls and hide selection
+        if (reportControls) reportControls.style.display = 'block';
+        if (reportContent) reportContent.style.display = 'none';
+        
+        let reportData;
+        
+        switch(type) {
+            case 'books':
+                reportData = getUserBooksData();
+                break;
+            case 'movies':
+                reportData = getUserMoviesData();
+                break;
+            case 'myissues':
+                reportData = getMyIssuesData();
+                break;
+            case 'myfines':
+                reportData = getMyFinesData();
+                break;
+            default:
+                reportData = getUserBooksData();
+        }
+        
+        // Set report title
+        if (reportTitle) reportTitle.textContent = reportData.title;
+        
+        // Generate table HTML
+        let tableHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+        `;
+        
+        reportData.columns.forEach(column => {
+            tableHTML += `<th>${column}</th>`;
         });
-        tableHTML += `</tr>`;
-    });
+        
+        tableHTML += `</tr></thead><tbody>`;
+        
+        if (reportData.data.length === 0) {
+            tableHTML += `
+                <tr>
+                    <td colspan="${reportData.columns.length}" style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-inbox fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
+                        <h4>No data found</h4>
+                        <p>No data available for this report.</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            reportData.data.forEach(row => {
+                tableHTML += `<tr>`;
+                row.forEach(cell => {
+                    tableHTML += `<td>${cell}</td>`;
+                });
+                tableHTML += `</tr>`;
+            });
+        }
+        
+        tableHTML += `</tbody></table>`;
+        
+        // Set table content
+        if (tableContainer) tableContainer.innerHTML = tableHTML;
+        
+        // Update report counts again
+        updateReportCounts();
+    }
     
-    tableHTML += `</tbody></table>`;
+    // Helper functions for user reports
+    function getUserBooksData() {
+        const books = LibraryStorage.getAvailableBooks();
+        
+        const data = books.map(book => [
+            book.serial || 'N/A',
+            book.name || 'Unnamed Book',
+            book.author || 'Unknown Author',
+            book.category || 'Uncategorized',
+            'Available',
+            book.quantity || '1'
+        ]);
+        
+        return {
+            title: 'Available Books Catalog',
+            columns: ['Serial No', 'Book Name', 'Author', 'Category', 'Status', 'Available Copies'],
+            data: data
+        };
+    }
     
-    // Set table content
-    tableContainer.innerHTML = tableHTML;
-}
+    function getUserMoviesData() {
+        const movies = LibraryStorage.getMovies();
+        
+        const data = movies.map(movie => [
+            movie.serial || 'N/A',
+            movie.name || 'Unnamed Movie',
+            movie.author || 'Unknown Director',
+            movie.category || 'Uncategorized',
+            movie.duration || 'N/A',
+            movie.status === 'Available' ? 'Yes' : 'No'
+        ]);
+        
+        return {
+            title: 'Available Movies Catalog',
+            columns: ['Serial No', 'Movie Name', 'Director', 'Category', 'Duration', 'Available'],
+            data: data
+        };
+    }
+    
+    function getMyIssuesData() {
+        const memberId = "MEM000123"; // Current user's member ID
+        console.log("Getting issues for member:", memberId);
+        
+        const issues = LibraryStorage.getIssues();
+        console.log("All issues:", issues);
+        
+        const userIssues = issues.filter(issue => 
+            issue.memberId === memberId && 
+            issue.status === 'Active'
+        );
+        
+        console.log("User's active issues:", userIssues);
+        
+        const data = userIssues.map(issue => [
+            issue.bookName || 'Unknown Book',
+            issue.bookAuthor || 'Unknown Author',
+            issue.bookSerial || 'N/A',
+            issue.issueDate || 'N/A',
+            issue.dueDate || 'N/A',
+            'Active'
+        ]);
+        
+        return {
+            title: 'My Active Issues',
+            columns: ['Book Name', 'Author', 'Serial No', 'Issue Date', 'Due Date', 'Status'],
+            data: data,
+            summary: `Total Active Issues: ${userIssues.length}`
+        };
+    }
+    
+    function getMyFinesData() {
+        const memberId = "MEM000123";
+        const issues = LibraryStorage.getIssues();
+        const userIssues = issues.filter(issue => issue.memberId === memberId);
+        
+        const data = userIssues
+            .filter(issue => issue.fineAmount > 0)
+            .map(issue => [
+                issue.bookName || 'Unknown Book',
+                issue.bookSerial || 'N/A',
+                issue.issueDate || 'N/A',
+                issue.returnDate || 'Not returned',
+                `₹${issue.fineAmount}`,
+                issue.finePaid > 0 ? 'Paid' : 'Pending'
+            ]);
+        
+        const totalFines = data.reduce((sum, row) => sum + parseInt(row[4].replace('₹', '') || 0), 0);
+        
+        return {
+            title: 'My Fine History',
+            columns: ['Book Name', 'Serial No', 'Issue Date', 'Return Date', 'Fine Amount', 'Status'],
+            data: data,
+            summary: `Total Fines: ₹${totalFines}`
+        };
+    }
+</script>
 
-// Helper functions for user reports
-function getUserBooksData() {
-    const books = LibraryStorage.getBooks();
-    const availableBooks = books.filter(book => book.status === 'Available');
-    
-    const data = availableBooks.map(book => [
-        book.serial,
-        book.name,
-        book.author,
-        book.category,
-        'Available',
-        book.copies || '1'
-    ]);
-    
-    return {
-        title: 'Available Books Catalog',
-        columns: ['Serial No', 'Book Name', 'Author', 'Category', 'Status', 'Available Copies'],
-        data: data.slice(0, 20) // Show first 20 books
-    };
-}
 
-function getUserMoviesData() {
-    const movies = LibraryStorage.getMovies();
-    
-    const data = movies.map(movie => [
-        movie.serial,
-        movie.name,
-        movie.author,
-        movie.category,
-        movie.duration || 'N/A',
-        movie.status === 'Available' ? 'Yes' : 'No'
-    ]);
-    
-    return {
-        title: 'Available Movies Catalog',
-        columns: ['Serial No', 'Movie Name', 'Director', 'Category', 'Duration', 'Available'],
-        data: data
-    };
-} 
-    </script>
+
     
     <style>
         .report-selection {
