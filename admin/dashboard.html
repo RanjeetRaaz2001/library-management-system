@@ -242,8 +242,10 @@
         </div>
     </main>
     
-    <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
+    <!-- Yeh scripts sabhi pages mein include hone chahiye -->
+<script src="../js/auth.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/validations.js"></script>
     <script>
         console.log("Admin Dashboard loaded");
         
@@ -350,23 +352,63 @@
         }
         
         // Update statistics
-        function updateStats(books, members) {
-            // Calculate statistics
-            const totalBooks = books.length;
-            const availableBooks = books.filter(b => b.status === 'Available').length;
-            const issuedBooks = books.filter(b => b.status === 'Issued').length;
-            const totalMembers = members.length;
-            const activeMembers = members.filter(m => m.status === 'Active').length;
-            
-            // Calculate pending fines (example calculation)
-            const pendingFines = issuedBooks * 10; // Example: ₹10 per issued book
-            
-            // Update DOM
-            document.getElementById('totalBooks').textContent = totalBooks;
-            document.getElementById('totalMembers').textContent = activeMembers;
-            document.getElementById('activeIssues').textContent = issuedBooks;
-            document.getElementById('pendingFines').textContent = `₹${pendingFines}`;
-        }
+       // Update stats function ko replace karein:
+function updateStats(books, members) {
+    // Get statistics from LibraryStorage
+    const stats = LibraryStorage.getStats();
+    
+    // Update DOM
+    document.getElementById('totalBooks').textContent = stats.totalBooks;
+    document.getElementById('totalMembers').textContent = stats.totalMembers;
+    document.getElementById('activeIssues').textContent = stats.activeIssues;
+    document.getElementById('pendingFines').textContent = `₹${stats.pendingFines}`;
+}
+
+// Update recent activity function mein yeh add karein:
+function updateRecentActivity() {
+    const recentActivity = document.getElementById('recentActivity');
+    
+    // Get recent issues and returns
+    const issues = LibraryStorage.getIssues();
+    const recentIssues = issues
+        .sort((a, b) => new Date(b.issueDate) - new Date(a.issueDate))
+        .slice(0, 5);
+    
+    if (recentIssues.length === 0) {
+        recentActivity.innerHTML = `
+            <div class="empty-activity">
+                <i class="fas fa-history fa-2x"></i>
+                <p>No recent activity</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    recentIssues.forEach(issue => {
+        const timeAgo = getTimeAgo(issue.issueDate);
+        const action = issue.status === 'Active' ? 'Book Issued' : 'Book Returned';
+        const icon = issue.status === 'Active' ? 'fas fa-share-square' : 'fas fa-undo';
+        
+        html += `
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #f3e5f5; color: #7b1fa2;">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="activity-details">
+                    <h4>${action}</h4>
+                    <p>${issue.bookName} to ${issue.memberName}</p>
+                    <small class="text-muted">Serial: ${issue.bookSerial}</small>
+                </div>
+                <div class="activity-time">
+                    ${timeAgo}
+                </div>
+            </div>
+        `;
+    });
+    
+    recentActivity.innerHTML = html;
+}
         
         // Update recent books
         function updateRecentBooks(books) {
